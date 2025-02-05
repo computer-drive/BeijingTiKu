@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QFrame, QWidget
 from PyQt5.QtCore import Qt
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox,
-                            PrimaryPushButton, IndeterminateProgressBar,
-                            CardWidget, IconWidget, ProgressBar,
-                            SwitchButton, InfoBar
+                            PrimaryPushButton, IndeterminateProgressBar, 
+                            CardWidget, IconWidget, ProgressBar, ComboBoxSettingCard, OptionsSettingCard, SwitchSettingCard,
+                            SwitchButton, InfoBar, SingleDirectionScrollArea, SmoothMode, QConfig, OptionsConfigItem, OptionsValidator
                             )
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import TitleLabel, BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel
@@ -157,22 +157,26 @@ class SettingCard(CardWidget):
         h_layout.addWidget(action_widget, 0, Qt.AlignmentFlag.AlignRight)
 
         self.setLayout(h_layout)
-
-
-
-
 class SettingsPage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        socall_area = SingleDirectionScrollArea(orient=Qt.Vertical)
+        socall_area.setStyleSheet("QScrollArea{background: transparent; border: none}")
+        socall_area.setSmoothMode(SmoothMode.NO_SMOOTH)
+
+        setting_widget = QWidget(self, objectName="setting_widget")
+        setting_widget.setStyleSheet("QWidget{background: transparent;}") 
+
         v_layout = QVBoxLayout()
-        v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # 设置窗口-标题
-        v_layout.addWidget(LargeTitleLabel("设置"))
+        test = LargeTitleLabel("设置")
+        test.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        v_layout.addWidget(test)
 
         v_layout.addWidget(SubtitleLabel("个性化"))
-        
+
         self.theme_input = ComboBox()
         self.theme_input.addItems(["浅色", "深色", "跟随系统"])
         v_layout.addWidget(SettingCard(FIF.BRUSH, "主题", "调整应用的主题外观", [self.theme_input]))
@@ -203,7 +207,8 @@ class SettingsPage(QFrame):
             FIF.MENU, "允许缓存试卷信息", "搜索时缓存试卷信息",
             [self.allow_cache_info]
         ))
-        self.setLayout(v_layout)
+
+        
 
         self.allow_cache_file = SwitchButton()
         self.allow_cache_file.setOffText("关")
@@ -221,19 +226,49 @@ class SettingsPage(QFrame):
 
         self.show_advanced_setting = PushButton("显示高级设置")
         v_layout.addWidget(self.show_advanced_setting, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        self.advanced_frame = QFrame(self)
+        # self.advanced_frame.setHidden(True)
+
+
+        advanced_layout = QVBoxLayout()
+
+        self.custom_url_input = LineEdit()
+        advanced_layout.addWidget(SettingCard(
+            FIF.WIFI, "自定义服务器地址", "自定义服务器地址，留空使用默认", [self.custom_url_input]
+        ))
+
+        self.custom_user_agent_input = LineEdit()
+        advanced_layout.addWidget(SettingCard(
+            FIF.PEOPLE, "自定义User-Agent", "自定义User-Agent，留空使用默认", [self.custom_user_agent_input]
+        ))
+
+        self.show_delay_input = SwitchButton()
+        self.show_delay_input.setOnText("开")
+        self.show_delay_input.setOffText("关")
+
+        self.dalay_input = SpinBox()
+        advanced_layout.addWidget(SettingCard(
+            FIF.CLOUD_DOWNLOAD, "搜索延迟设置", "搜索后为防止被网站拉黑，短时间内进行多次上搜索时提醒",
+            [self.show_delay_input, self.dalay_input]
+        ))
+        self.advanced_frame.setLayout(advanced_layout)
+
+
+        v_layout.addWidget(self.advanced_frame)
+
+        setting_widget.setLayout(v_layout)
         
-        
-            
-            
+        socall_area.setWidget(setting_widget)
+
+        setting_layout = QVBoxLayout()
+        setting_layout.addWidget(socall_area)
+        self.setLayout(setting_layout)
 
 
+if __name__ == "__main__":
+    app = QApplication([])
+    w = SettingsPage()
+    w.show()
 
-
-
-
-
-
-            
-
-
-
+    app.exec_()
