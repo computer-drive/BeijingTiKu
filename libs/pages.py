@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QFrame, QWidget
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QFrame, QWidget, QSizePolicy
 from PyQt5.QtCore import Qt
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox,
                             PrimaryPushButton, IndeterminateProgressBar, 
@@ -119,6 +119,9 @@ class SettingCard(CardWidget):
     def __init__(self, icon, title:str, content:str, actions:list[QWidget], action_layout_type:Literal["h_layout", "v_layout"]="h_layout",parent=None):
         super().__init__(parent)
 
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.setMidLineWidth(400)
+
         icon = IconWidget(icon)
         icon.setFixedSize(24, 24)
 
@@ -146,34 +149,46 @@ class SettingCard(CardWidget):
             action_layout = QHBoxLayout()   
         else:
             action_layout = QVBoxLayout() 
-        # action_layout.setAlignment(Qt.AlignmentFlag.AlignRight) 
+
 
         for action in actions:
             action_layout.addWidget(action)
 
         action_widget.setLayout(action_layout)
 
-        h_layout.addLayout(left_layout)
-        h_layout.addWidget(action_widget, 0, Qt.AlignmentFlag.AlignRight)
+        h_layout.addLayout(left_layout, stretch=1)
+        h_layout.addWidget(action_widget, stretch=0)
+
+        
 
         self.setLayout(h_layout)
 class SettingsPage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.v_layout = QVBoxLayout()
+        self.setLayout(self.v_layout)
+
+        self.setup_ui()
+
+    def setup_ui(self):
+
         socall_area = SingleDirectionScrollArea(orient=Qt.Vertical)
+        socall_area.setWidgetResizable(True)
+        socall_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         socall_area.setStyleSheet("QScrollArea{background: transparent; border: none}")
         socall_area.setSmoothMode(SmoothMode.NO_SMOOTH)
+        self.v_layout.addWidget(socall_area)
 
         setting_widget = QWidget(self, objectName="setting_widget")
         setting_widget.setStyleSheet("QWidget{background: transparent;}") 
 
-        v_layout = QVBoxLayout()
+        v_layout = QVBoxLayout(setting_widget)
 
         # 设置窗口-标题
         test = LargeTitleLabel("设置")
         test.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        v_layout.addWidget(test)
+        v_layout.addWidget(test, stretch=1)
 
         v_layout.addWidget(SubtitleLabel("个性化"))
 
@@ -261,9 +276,9 @@ class SettingsPage(QFrame):
         
         socall_area.setWidget(setting_widget)
 
-        setting_layout = QVBoxLayout()
-        setting_layout.addWidget(socall_area)
-        self.setLayout(setting_layout)
+        v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+
 
 
 if __name__ == "__main__":
