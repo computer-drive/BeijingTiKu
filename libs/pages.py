@@ -2,12 +2,14 @@ from PyQt5.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QFrame, QWid
 from PyQt5.QtCore import Qt
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox,
                             PrimaryPushButton, IndeterminateProgressBar, 
-                            CardWidget, IconWidget, ProgressBar, ComboBoxSettingCard, OptionsSettingCard, SwitchSettingCard,
-                            SwitchButton, InfoBar, SingleDirectionScrollArea, SmoothMode, QConfig, OptionsConfigItem, OptionsValidator
+                            CardWidget, IconWidget, ProgressBar,
+                            SwitchButton, InfoBar, SingleDirectionScrollArea, SmoothMode, 
                             )
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import TitleLabel, BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel
 from typing import Literal
+from datetime import datetime
+
 
 class SearchPage(QFrame):
     def __init__(self, parent=None):
@@ -47,6 +49,7 @@ class SearchPage(QFrame):
         args_layout.addWidget(BodyLabel("阶段&学科:"))
         self.stage_input = ComboBox()
         self.stage_input.addItems(["小学", "初中", "高中"])
+        self.stage_input.currentIndexChanged.connect(self.stageChange)
         args_layout.addWidget(self.stage_input)
 
         self.subject_input = ComboBox()
@@ -55,6 +58,7 @@ class SearchPage(QFrame):
 
         args_layout.addWidget(BodyLabel("年级:"))
         self.grade_input = ComboBox()
+        self.grade_input.addItems(["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"])
         args_layout.addWidget(self.grade_input)
 
         args_layout.addWidget(BodyLabel("类型:"))
@@ -67,7 +71,10 @@ class SearchPage(QFrame):
         args_layout.addWidget(self.type_input)
 
         args_layout.addWidget(BodyLabel("时间:"))
+        year = datetime.now().year
         self.time_input = SpinBox()
+        self.time_input.setRange(2000, year)
+        self.time_input.setValue(year)
         args_layout.addWidget(self.time_input)
 
         args_layout.addWidget(BodyLabel("地区:"))
@@ -90,6 +97,20 @@ class SearchPage(QFrame):
         args_layout.addWidget(search_button)
 
         return h_layout
+    
+    def stageChange(self):
+        current = self.stage_input.currentIndex()
+        match current:
+            case 0:
+                grade = ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"]
+            case 1:
+                grade = ["初一", "初二", "初三"]
+            case 2:
+                grade = ["高一", "高二", "高三"]
+
+        self.grade_input.clear()
+        self.grade_input.addItems(grade)
+
     
 class LocalPage(QFrame):
     def __init__(self, parent=None):
@@ -173,11 +194,11 @@ class SettingsPage(QFrame):
 
     def setup_ui(self):
 
-        socall_area = SingleDirectionScrollArea(orient=Qt.Vertical)
-        socall_area.setWidgetResizable(True)
+        socall_area = SingleDirectionScrollArea(orient=Qt.Vertical) # 创建垂直方向滚动区域
+        socall_area.setWidgetResizable(True) # 设置可调整大小
         socall_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        socall_area.setStyleSheet("QScrollArea{background: transparent; border: none}")
-        socall_area.setSmoothMode(SmoothMode.NO_SMOOTH)
+        socall_area.setStyleSheet("QScrollArea{background: transparent; border: none}") # 删除背景和边框
+        socall_area.setSmoothMode(SmoothMode.NO_SMOOTH) # 设置不平滑滚动
         self.v_layout.addWidget(socall_area)
 
         setting_widget = QWidget(self, objectName="setting_widget")
@@ -186,9 +207,7 @@ class SettingsPage(QFrame):
         v_layout = QVBoxLayout(setting_widget)
 
         # 设置窗口-标题
-        test = LargeTitleLabel("设置")
-        test.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        v_layout.addWidget(test, stretch=1)
+        v_layout.addWidget(LargeTitleLabel("设置"))
 
         v_layout.addWidget(SubtitleLabel("个性化"))
 
@@ -240,10 +259,11 @@ class SettingsPage(QFrame):
         v_layout.addWidget(tip_label)
 
         self.show_advanced_setting = PushButton("显示高级设置")
+        self.show_advanced_setting.clicked.connect(lambda: self.advanced_frame.setHidden(False))
         v_layout.addWidget(self.show_advanced_setting, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.advanced_frame = QFrame(self)
-        # self.advanced_frame.setHidden(True)
+        self.advanced_frame.setHidden(True)
 
 
         advanced_layout = QVBoxLayout()
@@ -265,18 +285,35 @@ class SettingsPage(QFrame):
         self.dalay_input = SpinBox()
         advanced_layout.addWidget(SettingCard(
             FIF.CLOUD_DOWNLOAD, "搜索延迟设置", "搜索后为防止被网站拉黑，短时间内进行多次上搜索时提醒",
-            [self.show_delay_input, self.dalay_input]
+            [self.show_delay_input, self.dalay_input],
+            "v_layout"
         ))
         self.advanced_frame.setLayout(advanced_layout)
 
 
         v_layout.addWidget(self.advanced_frame)
 
+        v_layout.addWidget(CaptionLabel("其他"))
+
+        self.reset_button = PushButton("重置所有设置")
+        v_layout.addWidget(SettingCard(
+            FIF.REMOVE_FROM, "重置所有设置", "重置所有设置至默认，注意：此操作不可逆", 
+            [self.reset_button]
+        ))
+
+        v_layout.addWidget(SettingCard(
+            FIF.INFO, "关于", "查看软件信息",
+            [PushButton("查看")]
+        ))
+
+
         setting_widget.setLayout(v_layout)
         
         socall_area.setWidget(setting_widget)
 
         v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+
 
 
 
