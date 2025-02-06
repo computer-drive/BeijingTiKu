@@ -6,14 +6,15 @@ from libs.pages import SearchPage, LocalPage, CollectsPage, SettingsPage
 from libs.log import create_logger
 import datetime
 
-now = datetime.datetime.now()
-logger = create_logger(__name__,
-                       file_logger_name=f"{now.strftime('%Y-%m-%d')}.log")
+now = datetime.datetime.now() # 获取当前时间
+logger = create_logger(__name__, # 创建日志记录器
+                       file_logger_name=f"{now.strftime('%Y-%m-%d')}.log") # 设置日志文件名
 
 class MainWindow(FluentWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("BeijingTiKu")
+
+        self.setWindowTitle("BeijingTiKu") # 设置窗口标题
 
         self.searchInterface = SearchPage(self)
         self.searchInterface.setObjectName("searchInterface")
@@ -53,6 +54,6 @@ if __name__ == "__main__":
         
         sys.exit(result)
     except Exception as e:
-        logger.error(f"An error occured while runningapp: {e.__class__.__name__}.")
+        logger.error(f"An error occured while running: {e.__class__.__name__}.")
         logger.exception(e)
  
