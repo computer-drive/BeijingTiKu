@@ -1,32 +1,205 @@
-from PyQt5.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QFrame, QWidget, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QFrame, QWidget, QSizePolicy, QLayout
 from PyQt5.QtCore import Qt
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox,
                             PrimaryPushButton, IndeterminateProgressBar, 
-                            CardWidget, IconWidget, ProgressBar,
-                            SwitchButton, InfoBar, SingleDirectionScrollArea, SmoothMode, 
+                            CardWidget, IconWidget, ProgressBar, TogglePushButton, InfoBadge,
+                            SwitchButton, InfoBar, SingleDirectionScrollArea, SmoothMode, InfoBarPosition
                             )
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import TitleLabel, BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel
 from typing import Literal
 from datetime import datetime
+from libs.worker import download_file
+import os
+from libs.cache import *
+
+def _get_widgets(layout:QLayout):
+    widgets = []
+    for i in range(layout.count()):
+        item = layout.itemAt(i)
+        if isinstance(item, QLayout):
+            widgets.extend(_get_widgets(item))
+        else:
+            widgets.append(item.widget())
+    return widgets
+
+def _layout_clear(layout:QLayout):
+    while layout.count():
+        item = layout.takeAt(0)
+        widget = item.widget()
+        if widget is not None:
+            widget.deleteLater()
+        else:
+            _layout_clear(item.layout())
+
+class ItemCard(CardWidget):
+    def __init__(self,
+                id: int,
+                title: str,
+                view: int,
+                download: int,
+                author: str, 
+                upload_time: str, 
+                is_hot: bool, 
+                is_real: bool, 
+                pdf_file: str,
+                word_file: str,
+                parent=None
+                ):
+        
+        self.id = id
+        self.title = title
+        self.view = view
+        self.download = download
+        self.author = author
+        self.upload_time = upload_time
+        self.is_hot = is_hot
+        self.is_real = is_real
+        self.pdf_file = pdf_file
+        self.word_file = word_file
+        self._parent = parent
+                        
+        super().__init__(parent) # * parent=SearchPage
+        
+        h_layout = QHBoxLayout()
+        self.setLayout(h_layout)
+
+        left_layout = QVBoxLayout()
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        h_layout.addLayout(left_layout)
+
+        title = TitleLabel(title)
+        title.setStyleSheet("font-size: 16px;")
+        left_layout.addWidget(title)
+        left_layout.addWidget(BodyLabel(f"下载量：{download} 浏览量：{view}"))
+        left_layout.addWidget(BodyLabel(f"作者：{author} 上传时间：{upload_time}"))
+
+        hot_label = InfoBadge.custom("热门", "#FE143B", "#FE143B")
+        real_label = InfoBadge.custom("真题", "#FF9D37", "#FF9D37")
+
+        info_layout = QHBoxLayout()
+        info_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        if is_hot:
+            info_layout.addWidget(hot_label, alignment=Qt.AlignmentFlag.AlignLeft)
+        if is_real:
+            info_layout.addWidget(real_label, alignment=Qt.AlignmentFlag.AlignLeft)
+        left_layout.addLayout(info_layout)
 
 
+        right_layout = QVBoxLayout()
+        right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
+        h_layout.addLayout(right_layout)
+
+        
+        self.download_pdf_button = PushButton(FIF.DOWNLOAD, "下载PDF文件")
+        self.download_pdf_button.clicked.connect(self.downloadPdf)
+        if pdf_file == "":
+            self.download_pdf_button.setEnabled(False)
+        right_layout.addWidget(self.download_pdf_button)
+
+        self.download_word_button = PushButton(FIF.DOWNLOAD, "下载Word文件")
+        self.download_word_button.clicked.connect(self.downloadWord)
+        if word_file == "":
+            self.download_word_button.setEnabled(False)
+        right_layout.addWidget(self.download_word_button)
+
+        view_layout = QHBoxLayout()
+        right_layout.addLayout(view_layout)
+
+        self.view_web_button = PushButton(FIF.CLOUD, "查看网页")
+        self.view_web_button.clicked.connect(self.viewWeb)
+        view_layout.addWidget(self.view_web_button)
+
+        self.view_pdf_button = PushButton(FIF.DOCUMENT, "预览网页")
+        self.view_pdf_button.clicked.connect(self.viewPdf)
+        view_layout.addWidget(self.view_pdf_button)
+
+        self.collect_button = TogglePushButton(FIF.HEART, "收藏")
+        right_layout.addWidget(self.collect_button)
+
+        self.refreshButton()
+
+    def downloadPdf(self):
+        # print(self._parent)
+        if self.pdf_file == "":
+            InfoBar.error(
+                "无法下载PDF文件",
+                "该试卷无PDF格式的文件",
+                orient=Qt.Vertical,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                parent=self._parent,
+                duration=5000
+            )
+        elif os.path.exists(f"cache/files/{self.title}.pdf"):
+            os.system(f"start cache/files/{self.title}.pdf")
+        else:
+            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}", f"cache/files/{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
+            self.download_pdf_button.setText("查看PDF文件")
+
+    def downloadWord(self):
+        if self.word_file == "":
+            InfoBar.error(
+                "无法下载Word文件",
+                "该试卷无Word格式的文件",
+                orient=Qt.Vertical,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                parent=self._parent,
+                duration=5000
+            )
+        elif os.path.exists(f"cache/files/{self.title}.docx"):
+            os.system(f"start cache/files/{self.title}.docx")
+        else:
+            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.word_file}", f"cache/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
+            self.download_word_button.setText("查看Word文件")
+
+    def viewWeb(self):
+        os.system(f"start https://www.jingshibang.com/home/detailPaper/?id={self.id}&title={self.title}")
+    
+    def viewPdf(self):
+        os.system(f"start https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}")
+
+    def refreshButton(self):
+        if os.path.exists(f"cache/files/{self.title}.pdf"):
+            self.download_pdf_button.setText("查看PDF文件")
+        else:
+            self.download_pdf_button.setText("下载PDF文件")
+        
+        if os.path.exists(f"cache/files/{self.title}.docx"):
+            self.download_word_button.setText("查看Word文件")
+        else:
+            self.download_word_button.setText("下载Word文件")
+        
+
+        
+    
 class SearchPage(QFrame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None): # * parent=MainWindow
+        # print(self)
         super().__init__(parent)
+
+        self.page = 1
+        self.max_page = 0
 
         v_layout = QVBoxLayout()
         v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        progress = IndeterminateProgressBar()
-        progress.setVisible(False)
-        v_layout.addWidget(progress)
+        self.progress = IndeterminateProgressBar()
+        self.progress.setVisible(False)
+        v_layout.addWidget(self.progress)
         
         # 搜索窗口-标题
         v_layout.addWidget(LargeTitleLabel("搜索"))
 
         v_layout.addLayout(self.initSearch())
 
+        self.initContentData()
+
+        v_layout.addWidget(self.scroll_area)
+        # v_layout.addWidget(self.)
 
         self.setLayout(v_layout)
 
@@ -93,10 +266,72 @@ class SearchPage(QFrame):
 
 
         # 搜索布局-表单布局-按钮布局
-        search_button = PrimaryPushButton("搜索")
-        args_layout.addWidget(search_button)
+        self.search_button = PrimaryPushButton("搜索")
+        args_layout.addWidget(self.search_button)
 
         return h_layout
+    
+    def initContentData(self):
+        self.scroll_area = SingleDirectionScrollArea(orient=Qt.Vertical)
+        self.scroll_area.setSmoothMode(SmoothMode.NO_SMOOTH)
+        self.scroll_area.setStyleSheet("QScrollArea{background: transparent; border: none}")
+        self.scroll_area.setWidgetResizable(True)
+        
+        self.content_data = QWidget()
+        self.content_data.setStyleSheet("QWidget{background: transparent}")
+        self.scroll_area.setWidget(self.content_data)
+
+        content_layout = QVBoxLayout()
+        content_layout.setContentsMargins(50, 0, 50, 0)
+        content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.content_data.content_layout = content_layout
+
+        self.content_data.setLayout(self.content_data.content_layout)
+
+
+    
+        
+    def showContentData(self, data):
+    #     for i in range(10):
+    #     w.content_data.content_layout.addWidget(ItemCard(
+    #     0,
+    #     "测试标题",
+    #     1145, 1919,
+    #     "测试作者", "1919-05-04",
+    #     False, True,
+    #     "...", ""
+    # ))
+        _layout_clear(self.content_data.content_layout)
+        for item in data:
+            if item["is_hot"] == 1:
+                is_hot = True
+            else:
+                is_hot = False
+
+            if item["is_quality"] == 1:
+                is_real = True
+            else:
+                is_real = False
+
+            if item["pdf_answer"] == "":
+                pdf_file = item["pdf_paper"]
+            else:
+                pdf_file = item["pdf_answer"]
+            
+            if item["word_answer"] == "":
+                word_file = item["word_paper"]
+            else:
+                word_file = item["word_answer"]
+
+            # print(self)
+            self.content_data.content_layout.addWidget(ItemCard(
+            item["id"], item["store_name"],
+            item["browse"], item["upload_num"],
+            item["upload_people"], item["add_time"],
+            is_hot, is_real,
+            pdf_file, word_file,
+            self # * parent=self=SearchPage
+            ))
     
     def stageChange(self):
         current = self.stage_input.currentIndex()
@@ -320,7 +555,18 @@ class SettingsPage(QFrame):
 
 if __name__ == "__main__":
     app = QApplication([])
-    w = SettingsPage()
+    
+    w = SearchPage()
+
+    for i in range(10):
+        w.content_data.content_layout.addWidget(ItemCard(
+        0,
+        "测试标题",
+        1145, 1919,
+        "测试作者", "1919-05-04",
+        False, True,
+        "...", ""
+    ))
     w.show()
 
     app.exec_()
