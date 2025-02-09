@@ -6,13 +6,16 @@ from libs.pages import SearchPage, LocalPage, CollectsPage, SettingsPage
 from libs.log import create_logger
 from libs.worker import SearchWorker
 import datetime
-import json
+from utility.config import JsonConfig
 
 
 search_count = 0
+
 now = datetime.datetime.now() # 获取当前时间
 logger = create_logger(__name__, # 创建日志记录器
                        file_logger_name=f"{now.strftime('%Y-%m-%d')}.log") # 设置日志文件名
+
+config = JsonConfig("config.json")
 
 class MainWindow(FluentWindow):
     def __init__(self):
@@ -20,10 +23,12 @@ class MainWindow(FluentWindow):
 
         self.setWindowTitle("BeijingTiKu") # 设置窗口标题
 
-        self.searchInterface = SearchPage(self)
+        self.searchInterface = SearchPage(config, self)
         self.searchInterface.setObjectName("searchInterface")
-        self.searchInterface.search_button.clicked.connect(self.search) # 连接搜索按钮的点击事件到search函数
+        self.searchInterface.search_button.clicked.connect(lambda: self.search(True)) # 连接搜索按钮的点击事件到search函数
 
+        self.searchInterface.page_back_button.clicked.connect(lambda: self.searchInterface.backPage(self.search)) # 连接后退按钮的点击事件到backPage函数
+        self.searchInterface.page_forward_button.clicked.connect(lambda: self.searchInterface.nextPage(self.search)) # 连接前进按钮的点击事件到nextPage函数
 
         self.localInterface = LocalPage(self)
         self.localInterface.setObjectName("localInterface")
@@ -43,10 +48,15 @@ class MainWindow(FluentWindow):
 
         self.addSubInterface(self.settingInterface, FIF.SETTING, "设置", NavigationItemPosition.BOTTOM)
 
-    def search(self):
+    def search(self, get_total=True):
         global search_count
 
+        if get_total:
+            self.searchInterface.page = 1
+
         self.searchInterface.search_button.setEnabled(False)
+        self.searchInterface.page_back_button.setEnabled(False)
+        self.searchInterface.page_forward_button.setEnabled(False)
         self.searchInterface.progress.setVisible(True)
 
         keyword = self.searchInterface.search_input.text()
@@ -73,19 +83,33 @@ class MainWindow(FluentWindow):
 
             self.searchInterface.search_button.setEnabled(True)
             self.searchInterface.progress.setVisible(False)
+            self.searchInterface.page_back_button.setEnabled(True)
+            self.searchInterface.page_forward_button.setEnabled(True)
 
 
             if data[0]:
-                # print(json.dumps(data[1][0], indent=4, ensure_ascii=False))
-                logger.info(f"Search completed with {len(data[1])} results.", extra={"type_name":f"searchWorker-{search_count}"})
+                if get_total:
+                    if data[2] % 20 == 0:
+                        self.searchInterface.max_page = data[2] // 20
+                    else:
+                        self.searchInterface.max_page = data[2] // 20 + 1
+
+                
+                    logger.info(f"Search completed with {len(data[1])} results. total: {data[2]}", extra={"type_name":f"searchWorker-{search_count}"})
+                else:
+                    logger.info(f"Search completed with {len(data[1])} results. ", extra={"type_name":f"searchWorker-{search_count}"})
+                
+                self.searchInterface.page_label.setText(f"{self.searchInterface.page}/{self.searchInterface.max_page} 共 {data[2]} 条")
+
                 self.searchInterface.showContentData(data[1])
+                
             else:
                 logger.warning(f"Search failed with error: {data[1]}", extra={"type_name":f"searchWorker-{search_count}"})
 
             search_count += 1
 
             
-        self.searchWorker = SearchWorker(keyword, subject, grade, type, time, place, page, limit)
+        self.searchWorker = SearchWorker(keyword, subject, grade, type, time, place, page, limit, get_total)
         self.searchWorker.finished.connect(finished)
         self.searchWorker.start()
 
