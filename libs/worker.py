@@ -11,10 +11,23 @@ download_count = 0
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
+def get_total(args):
+    args["page"] = 114514
+
+    try:
+        r = requests.get("https://www.jingshibang.com/api/products", params=args)
+
+        return r.json()["data"][0]["count"]
+    
+    except Exception as e:
+        return 0
+
+
+
 class SearchWorker(QThread):
     finished = pyqtSignal(tuple)
 
-    def __init__(self, keyword, subject, grade, type, time, place, page, limit=int(20)):
+    def __init__(self, keyword, subject, grade, type, time, place, page, limit=20, get_total=False):
         super().__init__()
 
         self.keyword = keyword
@@ -49,7 +62,12 @@ class SearchWorker(QThread):
             if response.ok:
 
                 data = response.json()
-                self.finished.emit((True, data["data"]))
+
+                if get_total:
+                    total = get_total(args)
+                    self.finished.emit((True, data["data"], total))
+                else:
+                    self.finished.emit((True, data["data"], 0))
             else:
                 self.finished.emit((False, response.status_code))
         
@@ -153,6 +171,7 @@ def download_file(url:str, save_path:str, title:str, user_agent:str=USER_AGENT, 
             InfoBar.success(
                 "下载成功",
                 f"文件已保存到: {save_path}",
+                orient=Qt.Vertical,
                 parent=parent,
                 duration=5000
             )
@@ -161,6 +180,7 @@ def download_file(url:str, save_path:str, title:str, user_agent:str=USER_AGENT, 
             InfoBar.error(
                 "下载失败",
                 f"详细信息请查看日志文件",
+                orient=Qt.Vertical,
                 parent=parent,
                 duration=5000
             )
