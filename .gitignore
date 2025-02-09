@@ -3,3 +3,4 @@ cache/
 *.log
 *.pyc
 *.pyd
+config.json
