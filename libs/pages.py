@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QFrame, QWidget, QSizePolicy, QLayout
 from PyQt5.QtCore import Qt
-from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox,
+from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton,
                             PrimaryPushButton, IndeterminateProgressBar, 
                             CardWidget, IconWidget, ProgressBar, TogglePushButton, InfoBadge,
                             SwitchButton, InfoBar, SingleDirectionScrollArea, SmoothMode, InfoBarPosition
@@ -12,6 +12,7 @@ from datetime import datetime
 from libs.worker import download_file
 import os
 from libs.cache import *
+from utility.config import JsonConfig
 
 def _get_widgets(layout:QLayout):
     widgets = []
@@ -44,6 +45,7 @@ class ItemCard(CardWidget):
                 is_real: bool, 
                 pdf_file: str,
                 word_file: str,
+                config: JsonConfig,
                 parent=None
                 ):
         
@@ -58,6 +60,7 @@ class ItemCard(CardWidget):
         self.pdf_file = pdf_file
         self.word_file = word_file
         self._parent = parent
+        self.config = config
                         
         super().__init__(parent) # * parent=SearchPage
         
@@ -117,6 +120,7 @@ class ItemCard(CardWidget):
         view_layout.addWidget(self.view_pdf_button)
 
         self.collect_button = TogglePushButton(FIF.HEART, "收藏")
+        self.collect_button.clicked.connect(self.collectButton)
         right_layout.addWidget(self.collect_button)
 
         self.refreshButton()
@@ -172,14 +176,36 @@ class ItemCard(CardWidget):
             self.download_word_button.setText("查看Word文件")
         else:
             self.download_word_button.setText("下载Word文件")
+
+        collects = self.config.get("collects", [])
+        item = [self.id, self.title]
+        if item in collects:
+            self.collect_button.toggle()
+            self.collect_button.setText("取消收藏")
+        else:
+            self.collect_button.setText("收藏")
+
+    def collectButton(self):
+        collects = self.config.get("collects", [])
+
+        item = [self.id, self.title]
+        if item in collects:
+            collects.remove(item)
+            self.collect_button.setText("收藏")
+        else:
+            collects.append(item)
+            self.collect_button.setText("取消收藏")
+
+        self.config.set("collects", collects)
         
 
         
     
 class SearchPage(QFrame):
-    def __init__(self, parent=None): # * parent=MainWindow
-        # print(self)
+    def __init__(self, config, parent=None): 
+
         super().__init__(parent)
+        self.config = config
 
         self.page = 1
         self.max_page = 0
@@ -199,6 +225,7 @@ class SearchPage(QFrame):
         self.initContentData()
 
         v_layout.addWidget(self.scroll_area)
+        v_layout.addLayout(self.page_layout)
         # v_layout.addWidget(self.)
 
         self.setLayout(v_layout)
@@ -288,21 +315,40 @@ class SearchPage(QFrame):
 
         self.content_data.setLayout(self.content_data.content_layout)
 
+        self.page_layout = QHBoxLayout()
+        self.page_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.page_back_button = ToolButton(FIF.LEFT_ARROW)
+        self.page_back_button.setToolTip("上一页")
+        self.page_layout.addWidget(self.page_back_button, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        self.page_label = BodyLabel("-/- 共 - 条")
+        self.page_layout.addWidget(self.page_label, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        self.page_forward_button = ToolButton(FIF.RIGHT_ARROW)
+        self.page_forward_button.setToolTip("下一页")
+        self.page_layout.addWidget(self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+
+
 
     
         
     def showContentData(self, data):
-    #     for i in range(10):
-    #     w.content_data.content_layout.addWidget(ItemCard(
-    #     0,
-    #     "测试标题",
-    #     1145, 1919,
-    #     "测试作者", "1919-05-04",
-    #     False, True,
-    #     "...", ""
-    # ))
+
         _layout_clear(self.content_data.content_layout)
         for item in data:
+            if len(item) == 2:
+                InfoBar.warning(
+                    "无结果",
+                    "没有找到相关内容，以下是可能的原因：\n 1.试卷未上传，一般在考试3-4天后上传 \n2.时间错误 \n3.关键词错误，可尝试删除关键词搜索\n",
+                    parent=self,
+                    orient=Qt.Vertical,
+                    duration=5000
+                )
+                continue
+
+
             if item["is_hot"] == 1:
                 is_hot = True
             else:
@@ -330,7 +376,8 @@ class SearchPage(QFrame):
             item["upload_people"], item["add_time"],
             is_hot, is_real,
             pdf_file, word_file,
-            self # * parent=self=SearchPage
+            self.config,
+            self 
             ))
     
     def stageChange(self):
@@ -345,6 +392,31 @@ class SearchPage(QFrame):
 
         self.grade_input.clear()
         self.grade_input.addItems(grade)
+
+    def nextPage(self, search):
+        if self.page < self.max_page:
+            self.page += 1
+            self.page_back_button.setEnabled(True)
+            self.page_forward_button.setEnabled(True)
+        else:
+            self.page_back_button.setEnabled(False)
+            self.page_forward_button.setEnabled(True)
+
+        search(False)
+
+    def backPage(self, search):
+        if self.page > 1:
+            self.page -= 1
+            self.page_back_button.setEnabled(True)
+            self.page_forward_button.setEnabled(True)
+        else:
+            self.page_back_button.setEnabled(False)
+            self.page_forward_button.setEnabled(True)
+
+        search(False)
+
+    
+        
 
     
 class LocalPage(QFrame):
