@@ -1,17 +1,18 @@
+import sys
+from datetime import datetime
+from libs.pages_logical import SearchPage, LocalPage, CollectsPage, SettingsPage, Preferred
+from libs.log import create_logger
+from libs.worker import SearchWorker
+
 from PyQt5.QtWidgets import QApplication
 from qfluentwidgets import FluentWindow, NavigationItemPosition
 from qfluentwidgets import FluentIcon as FIF
-import sys
-from libs.pages import SearchPage, LocalPage, CollectsPage, SettingsPage
-from libs.log import create_logger
-from libs.worker import SearchWorker
-import datetime
 from utility.config import JsonConfig
 
 
 search_count = 0
 
-now = datetime.datetime.now() # 获取当前时间
+now = datetime.now() # 获取当前时间
 logger = create_logger(__name__, # 创建日志记录器
                        file_logger_name=f"{now.strftime('%Y-%m-%d')}.log") # 设置日志文件名
 
@@ -26,6 +27,13 @@ class MainWindow(FluentWindow):
         self.searchInterface = SearchPage(config, self)
         self.searchInterface.setObjectName("searchInterface")
         self.searchInterface.search_button.clicked.connect(lambda: self.search(True)) # 连接搜索按钮的点击事件到search函数
+        
+        year = datetime.now().year
+        self.searchInterface.time_input.setRange(2000, year) # 设置时间输入框的范围
+        self.searchInterface.time_input.setValue(year) 
+        
+        self.preferredInterface = Preferred(config, self)
+        self.preferredInterface.setObjectName("preferredInterface")
 
         self.searchInterface.page_back_button.clicked.connect(lambda: self.searchInterface.backPage(self.search)) # 连接后退按钮的点击事件到backPage函数
         self.searchInterface.page_forward_button.clicked.connect(lambda: self.searchInterface.nextPage(self.search)) # 连接前进按钮的点击事件到nextPage函数
@@ -40,11 +48,15 @@ class MainWindow(FluentWindow):
         self.settingInterface.setObjectName("settingInterface")
 
         self.initNavigation()
-        
+         
     def initNavigation(self):
-        self.addSubInterface(self.searchInterface, FIF.SEARCH, "搜索")
+
+        self.addSubInterface(self.searchInterface, FIF.DOCUMENT, "试卷")
+        self.addSubInterface(self.preferredInterface, FIF.FLAG, "优选")
+
         self.addSubInterface(self.localInterface, FIF.FOLDER, "本地")
         self.addSubInterface(self.collectsInterface, FIF.HEART, "收藏")
+
 
         self.addSubInterface(self.settingInterface, FIF.SETTING, "设置", NavigationItemPosition.BOTTOM)
 
@@ -113,9 +125,6 @@ class MainWindow(FluentWindow):
         self.searchWorker.finished.connect(finished)
         self.searchWorker.start()
 
-        
-
-
 
         
 if __name__ == "__main__":
@@ -124,8 +133,12 @@ if __name__ == "__main__":
         app = QApplication(sys.argv)
 
         w = MainWindow()
-        # print(w)
+        
         w.show()
+
+        profiler.disable() 
+        stats = pstats.Stats(profiler).sort_stats('cumtime')
+        stats.print_stats(20)   # 显示耗时前20的函数
 
         result = app.exec_()
 
