@@ -1,205 +1,15 @@
-from PyQt5.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QFrame, QWidget, QSizePolicy, QLayout
+from libs.widgets import SettingCard
+from utility.format import format_capacity, format_time
+from PyQt5.QtWidgets import  QVBoxLayout, QHBoxLayout, QFrame, QWidget, QSizePolicy
 from PyQt5.QtCore import Qt
-from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton,
-                            PrimaryPushButton, IndeterminateProgressBar, 
-                            CardWidget, IconWidget, ProgressBar, TogglePushButton, InfoBadge,
-                            SwitchButton, InfoBar, SingleDirectionScrollArea, SmoothMode, InfoBarPosition
+from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton, MessageBoxBase,
+                            PrimaryPushButton, IndeterminateProgressBar,  ProgressBar, TitleLabel,
+                            SwitchButton, SingleDirectionScrollArea, SmoothMode, IndeterminateProgressRing,
+                             BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel
                             )
 from qfluentwidgets import FluentIcon as FIF
-from qfluentwidgets import TitleLabel, BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel
-from typing import Literal
-from datetime import datetime
-from libs.worker import download_file
-import os
-from libs.cache import *
-from utility.config import JsonConfig
-
-def _get_widgets(layout:QLayout):
-    widgets = []
-    for i in range(layout.count()):
-        item = layout.itemAt(i)
-        if isinstance(item, QLayout):
-            widgets.extend(_get_widgets(item))
-        else:
-            widgets.append(item.widget())
-    return widgets
-
-def _layout_clear(layout:QLayout):
-    while layout.count():
-        item = layout.takeAt(0)
-        widget = item.widget()
-        if widget is not None:
-            widget.deleteLater()
-        else:
-            _layout_clear(item.layout())
-
-class ItemCard(CardWidget):
-    def __init__(self,
-                id: int,
-                title: str,
-                view: int,
-                download: int,
-                author: str, 
-                upload_time: str, 
-                is_hot: bool, 
-                is_real: bool, 
-                pdf_file: str,
-                word_file: str,
-                config: JsonConfig,
-                parent=None
-                ):
-        
-        self.id = id
-        self.title = title
-        self.view = view
-        self.download = download
-        self.author = author
-        self.upload_time = upload_time
-        self.is_hot = is_hot
-        self.is_real = is_real
-        self.pdf_file = pdf_file
-        self.word_file = word_file
-        self._parent = parent
-        self.config = config
-                        
-        super().__init__(parent) # * parent=SearchPage
-        
-        h_layout = QHBoxLayout()
-        self.setLayout(h_layout)
-
-        left_layout = QVBoxLayout()
-        left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        h_layout.addLayout(left_layout)
-
-        title = TitleLabel(title)
-        title.setStyleSheet("font-size: 16px;")
-        left_layout.addWidget(title)
-        left_layout.addWidget(BodyLabel(f"下载量：{download} 浏览量：{view}"))
-        left_layout.addWidget(BodyLabel(f"作者：{author} 上传时间：{upload_time}"))
-
-        hot_label = InfoBadge.custom("热门", "#FE143B", "#FE143B")
-        real_label = InfoBadge.custom("真题", "#FF9D37", "#FF9D37")
-
-        info_layout = QHBoxLayout()
-        info_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        if is_hot:
-            info_layout.addWidget(hot_label, alignment=Qt.AlignmentFlag.AlignLeft)
-        if is_real:
-            info_layout.addWidget(real_label, alignment=Qt.AlignmentFlag.AlignLeft)
-        left_layout.addLayout(info_layout)
 
 
-        right_layout = QVBoxLayout()
-        right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
-        h_layout.addLayout(right_layout)
-
-        
-        self.download_pdf_button = PushButton(FIF.DOWNLOAD, "下载PDF文件")
-        self.download_pdf_button.clicked.connect(self.downloadPdf)
-        if pdf_file == "":
-            self.download_pdf_button.setEnabled(False)
-        right_layout.addWidget(self.download_pdf_button)
-
-        self.download_word_button = PushButton(FIF.DOWNLOAD, "下载Word文件")
-        self.download_word_button.clicked.connect(self.downloadWord)
-        if word_file == "":
-            self.download_word_button.setEnabled(False)
-        right_layout.addWidget(self.download_word_button)
-
-        view_layout = QHBoxLayout()
-        right_layout.addLayout(view_layout)
-
-        self.view_web_button = PushButton(FIF.CLOUD, "查看网页")
-        self.view_web_button.clicked.connect(self.viewWeb)
-        view_layout.addWidget(self.view_web_button)
-
-        self.view_pdf_button = PushButton(FIF.DOCUMENT, "预览网页")
-        self.view_pdf_button.clicked.connect(self.viewPdf)
-        view_layout.addWidget(self.view_pdf_button)
-
-        self.collect_button = TogglePushButton(FIF.HEART, "收藏")
-        self.collect_button.clicked.connect(self.collectButton)
-        right_layout.addWidget(self.collect_button)
-
-        self.refreshButton()
-
-    def downloadPdf(self):
-        # print(self._parent)
-        if self.pdf_file == "":
-            InfoBar.error(
-                "无法下载PDF文件",
-                "该试卷无PDF格式的文件",
-                orient=Qt.Vertical,
-                isClosable=True,
-                position=InfoBarPosition.TOP_RIGHT,
-                parent=self._parent,
-                duration=5000
-            )
-        elif os.path.exists(f"cache/files/{self.title}.pdf"):
-            os.system(f"start cache/files/{self.title}.pdf")
-        else:
-            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}", f"cache/files/{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
-            self.download_pdf_button.setText("查看PDF文件")
-
-    def downloadWord(self):
-        if self.word_file == "":
-            InfoBar.error(
-                "无法下载Word文件",
-                "该试卷无Word格式的文件",
-                orient=Qt.Vertical,
-                isClosable=True,
-                position=InfoBarPosition.TOP_RIGHT,
-                parent=self._parent,
-                duration=5000
-            )
-        elif os.path.exists(f"cache/files/{self.title}.docx"):
-            os.system(f"start cache/files/{self.title}.docx")
-        else:
-            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.word_file}", f"cache/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
-            self.download_word_button.setText("查看Word文件")
-
-    def viewWeb(self):
-        os.system(f"start https://www.jingshibang.com/home/detailPaper/?id={self.id}&title={self.title}")
-    
-    def viewPdf(self):
-        os.system(f"start https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}")
-
-    def refreshButton(self):
-        if os.path.exists(f"cache/files/{self.title}.pdf"):
-            self.download_pdf_button.setText("查看PDF文件")
-        else:
-            self.download_pdf_button.setText("下载PDF文件")
-        
-        if os.path.exists(f"cache/files/{self.title}.docx"):
-            self.download_word_button.setText("查看Word文件")
-        else:
-            self.download_word_button.setText("下载Word文件")
-
-        collects = self.config.get("collects", [])
-        item = [self.id, self.title]
-        if item in collects:
-            self.collect_button.toggle()
-            self.collect_button.setText("取消收藏")
-        else:
-            self.collect_button.setText("收藏")
-
-    def collectButton(self):
-        collects = self.config.get("collects", [])
-
-        item = [self.id, self.title]
-        if item in collects:
-            collects.remove(item)
-            self.collect_button.setText("收藏")
-        else:
-            collects.append(item)
-            self.collect_button.setText("取消收藏")
-
-        self.config.set("collects", collects)
-        
-
-        
     
 class SearchPage(QFrame):
     def __init__(self, config, parent=None): 
@@ -218,7 +28,7 @@ class SearchPage(QFrame):
         v_layout.addWidget(self.progress)
         
         # 搜索窗口-标题
-        v_layout.addWidget(LargeTitleLabel("搜索"))
+        v_layout.addWidget(LargeTitleLabel("试卷"))
 
         v_layout.addLayout(self.initSearch())
 
@@ -249,7 +59,7 @@ class SearchPage(QFrame):
         args_layout.addWidget(BodyLabel("阶段&学科:"))
         self.stage_input = ComboBox()
         self.stage_input.addItems(["小学", "初中", "高中"])
-        self.stage_input.currentIndexChanged.connect(self.stageChange)
+        
         args_layout.addWidget(self.stage_input)
 
         self.subject_input = ComboBox()
@@ -271,10 +81,7 @@ class SearchPage(QFrame):
         args_layout.addWidget(self.type_input)
 
         args_layout.addWidget(BodyLabel("时间:"))
-        year = datetime.now().year
         self.time_input = SpinBox()
-        self.time_input.setRange(2000, year)
-        self.time_input.setValue(year)
         args_layout.addWidget(self.time_input)
 
         args_layout.addWidget(BodyLabel("地区:"))
@@ -329,94 +136,55 @@ class SearchPage(QFrame):
         self.page_forward_button.setToolTip("下一页")
         self.page_layout.addWidget(self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter)
         
-
-
-
     
+
+class Preferred(QFrame):
+    def __init__(self, config, parent=None):
+        super().__init__(parent)
+
+        self.config = config
+
+        v_layout = QVBoxLayout()
+        v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        v_layout.addWidget(LargeTitleLabel("优选"))
+
+        v_layout.addLayout(self.initUI())
+
+        self.setLayout(v_layout)
+
+    def initUI(self):
+
+        search_layout = QHBoxLayout()    
+
+        search_layout.addWidget(BodyLabel("阶段&学科："))
+
+        self.state_input = ComboBox()
+        self.state_input.addItems(["小学", "初中", "高中"])
+        search_layout.addWidget(self.state_input)
+
+        self.subject_input = ComboBox()
+        self.subject_input.addItems(["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "道法"])
+        search_layout.addWidget(self.subject_input)
+
+        search_layout.addWidget(BodyLabel("范围："))
+
+        self.moudle_input = ComboBox()
+        search_layout.addWidget(self.moudle_input)
+
+        self.chapter_input = ComboBox()
+        search_layout.addWidget(self.chapter_input)
+
+        self.point_input = ComboBox()
+        search_layout.addWidget(self.point_input)
+
+        self.search_button = PrimaryPushButton("搜索")
+        search_layout.addWidget(self.search_button)
+
+        return search_layout
+
         
-    def showContentData(self, data):
 
-        _layout_clear(self.content_data.content_layout)
-        for item in data:
-            if len(item) == 2:
-                InfoBar.warning(
-                    "无结果",
-                    "没有找到相关内容，以下是可能的原因：\n 1.试卷未上传，一般在考试3-4天后上传 \n2.时间错误 \n3.关键词错误，可尝试删除关键词搜索\n",
-                    parent=self,
-                    orient=Qt.Vertical,
-                    duration=5000
-                )
-                continue
-
-
-            if item["is_hot"] == 1:
-                is_hot = True
-            else:
-                is_hot = False
-
-            if item["is_quality"] == 1:
-                is_real = True
-            else:
-                is_real = False
-
-            if item["pdf_answer"] == "":
-                pdf_file = item["pdf_paper"]
-            else:
-                pdf_file = item["pdf_answer"]
-            
-            if item["word_answer"] == "":
-                word_file = item["word_paper"]
-            else:
-                word_file = item["word_answer"]
-
-            # print(self)
-            self.content_data.content_layout.addWidget(ItemCard(
-            item["id"], item["store_name"],
-            item["browse"], item["upload_num"],
-            item["upload_people"], item["add_time"],
-            is_hot, is_real,
-            pdf_file, word_file,
-            self.config,
-            self 
-            ))
-    
-    def stageChange(self):
-        current = self.stage_input.currentIndex()
-        match current:
-            case 0:
-                grade = ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"]
-            case 1:
-                grade = ["初一", "初二", "初三"]
-            case 2:
-                grade = ["高一", "高二", "高三"]
-
-        self.grade_input.clear()
-        self.grade_input.addItems(grade)
-
-    def nextPage(self, search):
-        if self.page < self.max_page:
-            self.page += 1
-            self.page_back_button.setEnabled(True)
-            self.page_forward_button.setEnabled(True)
-        else:
-            self.page_back_button.setEnabled(False)
-            self.page_forward_button.setEnabled(True)
-
-        search(False)
-
-    def backPage(self, search):
-        if self.page > 1:
-            self.page -= 1
-            self.page_back_button.setEnabled(True)
-            self.page_forward_button.setEnabled(True)
-        else:
-            self.page_back_button.setEnabled(False)
-            self.page_forward_button.setEnabled(True)
-
-        search(False)
-
-    
-        
 
     
 class LocalPage(QFrame):
@@ -443,53 +211,9 @@ class CollectsPage(QFrame):
 
         self.setLayout(v_layout)
     
-class SettingCard(CardWidget):
-    def __init__(self, icon, title:str, content:str, actions:list[QWidget], action_layout_type:Literal["h_layout", "v_layout"]="h_layout",parent=None):
-        super().__init__(parent)
-
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        self.setMidLineWidth(400)
-
-        icon = IconWidget(icon)
-        icon.setFixedSize(24, 24)
-
-        title = BodyLabel(title)
-        content = CaptionLabel(content)
-        content.setTextColor("#606060", "#d2d2d2")
-
-        h_layout = QHBoxLayout()
-
-        left_layout = QHBoxLayout()
-        left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        left_layout.addWidget(icon, 0, Qt.AlignmentFlag.AlignVCenter)
-
-        content_layout = QVBoxLayout()
-        content_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-
-        content_layout.addWidget(title, 0, Qt.AlignmentFlag.AlignLeft)
-        content_layout.addWidget(content, 0, Qt.AlignmentFlag.AlignLeft)
-
-        left_layout.addLayout(content_layout)
-
-        action_widget = QWidget()
-        if action_layout_type == "h_layout":
-            action_layout = QHBoxLayout()   
-        else:
-            action_layout = QVBoxLayout() 
 
 
-        for action in actions:
-            action_layout.addWidget(action)
 
-        action_widget.setLayout(action_layout)
-
-        h_layout.addLayout(left_layout, stretch=1)
-        h_layout.addWidget(action_widget, stretch=0)
-
-        
-
-        self.setLayout(h_layout)
 class SettingsPage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -621,24 +345,83 @@ class SettingsPage(QFrame):
         v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
 
+class ProgressWindow(MessageBoxBase):
+    def __init__(self, content: str, parent=None):
+        super().__init__(parent)
+
+
+        self.viewLayout.addWidget(TitleLabel(content))
+
+        self.progress = ProgressBar()
+        self.progress.setRange(0, 100)
+        self.viewLayout.addWidget(self.progress)
+
+        info_layout = QHBoxLayout()
+        self.viewLayout.addLayout(info_layout)
+
+        self.count_label = CaptionLabel("0.00 MB / 0.00 MB 0.00 KB/S")
+        info_layout.addWidget(self.count_label)
+
+        self.eta_label = CaptionLabel("00:00:00 100%")
+        info_layout.addWidget(self.eta_label, alignment=Qt.AlignmentFlag.AlignRight)
+
+        self.widget.setMinimumWidth(450)
+
+        self.yesButton.hide()
+        # self.cancelButton.hide()
+
+    def update_(self, data):
+        count, total, speed, eta, progress = data
+
+            
+
+        if eta == -1:
+            eta = "--:--:--"
+            
+
+        self.count_label.setText(f"{format_capacity(count)} / {format_capacity(total)} {format_capacity(speed)}/S")
+        self.eta_label.setText(f"{format_time(eta)} {progress}%") 
+
+        self.progress.setValue(progress)
+
+class LoadingWindow(MessageBoxBase):
+    def __init__(self, title:str, content:str, parent=None):
+        super().__init__(parent)
+
+        self.setMinimumSize(500,300)
+
+        progress = IndeterminateProgressRing()
+        progress.setFixedSize(45, 45)
+        self.viewLayout.addWidget(progress, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        content_layout = QVBoxLayout()
+
+        content_layout.addWidget(TitleLabel(title), alignment=Qt.AlignmentFlag.AlignCenter)
+
+        content_layout.addWidget(BodyLabel(content), alignment=Qt.AlignmentFlag.AlignCenter)
+
+        self.viewLayout.addLayout(content_layout)
+
+
+        self.buttonGroup.deleteLater()
+        self.buttonLayout.deleteLater()
 
 
 
-
-if __name__ == "__main__":
-    app = QApplication([])
+# if __name__ == "__main__":
+#     app = QApplication([])
     
-    w = SearchPage()
+#     w = SearchPage()
 
-    for i in range(10):
-        w.content_data.content_layout.addWidget(ItemCard(
-        0,
-        "测试标题",
-        1145, 1919,
-        "测试作者", "1919-05-04",
-        False, True,
-        "...", ""
-    ))
-    w.show()
+#     for i in range(10):
+#         w.content_data.content_layout.addWidget(ItemCard(
+#         0,
+#         "测试标题",
+#         1145, 1919,
+#         "测试作者", "1919-05-04",
+#         False, True,
+#         "...", ""
+#     ))
+#     w.show()
 
-    app.exec_()
+#     app.exec_()
