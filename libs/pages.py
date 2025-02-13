@@ -5,7 +5,8 @@ from PyQt5.QtCore import Qt
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton, MessageBoxBase,
                             PrimaryPushButton, IndeterminateProgressBar,  ProgressBar, TitleLabel,
                             SwitchButton, SingleDirectionScrollArea, SmoothMode, IndeterminateProgressRing,
-                             BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel, FluentWindow, NavigationItemPosition
+                            BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel, FluentWindow,
+                            NavigationItemPosition, TreeWidget
                             )
 from qfluentwidgets import FluentIcon as FIF
 
@@ -149,13 +150,16 @@ class Preferred(QFrame):
 
         v_layout.addWidget(LargeTitleLabel("优选"))
 
-        v_layout.addLayout(self.initUI())
+        v_layout.addLayout(self.initSearch())
+
+        v_layout.addLayout(self.initContent())
 
         self.setLayout(v_layout)
 
-    def initUI(self):
+    def initSearch(self):
 
-        search_layout = QHBoxLayout()    
+        search_layout = QHBoxLayout()
+        search_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)    
 
         search_layout.addWidget(BodyLabel("阶段&学科："))
 
@@ -167,21 +171,48 @@ class Preferred(QFrame):
         self.subject_input.addItems(["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "道法"])
         search_layout.addWidget(self.subject_input)
 
-        search_layout.addWidget(BodyLabel("范围："))
+        search_layout.addWidget(BodyLabel("类型："))
 
-        self.moudle_input = ComboBox()
-        search_layout.addWidget(self.moudle_input)
+        self.type_input = ComboBox()
+        self.type_input.addItems(["全部","汇编", "测试", "课件", "讲义", "知识", "专辑"])
 
-        self.chapter_input = ComboBox()
-        search_layout.addWidget(self.chapter_input)
+        self.assembly_type_label = BodyLabel("汇编类型：")
+        self.assembly_type_label.setVisible(False)
+        search_layout.addWidget(self.assembly_type_label)
 
-        self.point_input = ComboBox()
-        search_layout.addWidget(self.point_input)
+        self.assembly_type_input = ComboBox()
+        self.assembly_type_input.setVisible(False)
+        self.assembly_type_input.addItems(["全部", "(上)期末汇编", "(上)其中汇编", "一模汇编", "二模汇编", "(下)期中汇编", "(下)期末汇编", "合格考汇编"])
+        self.assembly_type_input.setVisible(False)
+        search_layout.addWidget(self.assembly_type_input)
 
-        self.search_button = PrimaryPushButton("搜索")
-        search_layout.addWidget(self.search_button)
+        self.assembly_grade_label = BodyLabel("汇编年级：")
+        self.assembly_grade_label.setVisible(False)
+        search_layout.addWidget(self.assembly_grade_label)
+
+        self.assembly_grade_input = ComboBox()
+        self.assembly_grade_input.setVisible(False)
+        search_layout.addWidget(self.assembly_grade_input)
+        
+
+        search_layout.addWidget(BodyLabel("时间："))
+
+        self.time_input = SpinBox()
+        search_layout.addWidget(self.time_input)    
+
 
         return search_layout
+    
+    def initContent(self):
+        content_layout = QHBoxLayout()
+
+        self.catetory_widget = TreeWidget()
+        content_layout.addWidget(self.catetory_widget)
+
+        self.content_data_layout = QVBoxLayout()
+        content_layout.addLayout(self.content_data_layout)
+
+        return content_layout
 
         
 
