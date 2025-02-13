@@ -123,11 +123,11 @@ class Downloader(QThread):
 
 def download_file(url:str, save_path:str, title:str, user_agent:str=USER_AGENT, parent=None):
     from libs.pages import ProgressWindow
-    logger = logging.getLogger("__main__")
+
+    logger = logging.getLogger("Main")
 
     def finish(data):
-        global download_count
-        # print(parent)
+
         progress_window.close()
         if data[0]:
             InfoBar.success(
@@ -137,7 +137,7 @@ def download_file(url:str, save_path:str, title:str, user_agent:str=USER_AGENT, 
                 parent=parent,
                 duration=5000
             )
-            logger.info(f"Download successful.", extra={"type_name": f"downloader-{download_count}"})
+            logger.info(f"Download successful.", extra={"class": "Downloader"})
         else:
             InfoBar.error(
                 "下载失败",
@@ -146,12 +146,11 @@ def download_file(url:str, save_path:str, title:str, user_agent:str=USER_AGENT, 
                 parent=parent,
                 duration=5000
             )
-            logger.error(f"Download failed. details: {data[1]}", extra={"type_name": f"downloader-{download_count}"})
+            logger.error(f"Download failed. details: {data[1]}", extra={"class": "Downloader"})
 
-        download_count += 1
 
     
-    logger.info(f"Starting download:{url}", extra={"type_name": f"downloader-{download_count}"})
+    logger.info(f"Starting download:{url}", extra={"class": "Downloader"})
     progress_window = ProgressWindow(title, parent)
 
     progress_window.worker = Downloader(url, save_path, user_agent)
