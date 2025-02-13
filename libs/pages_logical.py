@@ -1,7 +1,10 @@
 from libs.pages import SearchPage, Preferred, LocalPage, CollectsPage, SettingsPage
 from libs.widgets import ItemCard
+from libs.worker import SearchWorker
 from qfluentwidgets import InfoBar
 from PyQt5.QtCore import Qt
+from datetime import datetime
+
 
 
 def _layout_clear(layout):
@@ -15,10 +18,22 @@ def _layout_clear(layout):
 
 
 class SearchPage(SearchPage):
-    def __init__(self, config, parent=None):
+    def __init__(self, config, logger, parent=None):
         super().__init__(config, parent)
 
+        self.logger = logger
+        logger.name = "SearchPage"
+
         self.stage_input.currentIndexChanged.connect(self.stageChange)
+
+        year = datetime.now().year
+        self.time_input.setRange(2000, year) # 设置时间输入框的范围
+        self.time_input.setValue(year)
+        
+        
+        self.search_button.clicked.connect(lambda: self.search(True))
+        self.page_back_button.clicked.connect(lambda: self.backPage())
+        self.page_forward_button.clicked.connect(lambda: self.nextPage())
 
     def showContentData(self, data):
 
@@ -88,9 +103,9 @@ class SearchPage(SearchPage):
             self.page_back_button.setEnabled(False)
             self.page_forward_button.setEnabled(True)
 
-        search(False)
+        self.search(False)
 
-    def backPage(self, search):
+    def backPage(self):
         if self.page > 1:
             self.page -= 1
             self.page_back_button.setEnabled(True)
@@ -99,4 +114,63 @@ class SearchPage(SearchPage):
             self.page_back_button.setEnabled(False)
             self.page_forward_button.setEnabled(True)
 
-        search(False)
+        self.search(False)
+
+    def search(self, get_total=True):
+            if get_total:
+                self.page = 1
+
+            self.search_button.setEnabled(False)
+            self.page_back_button.setEnabled(False)
+            self.page_forward_button.setEnabled(False)
+            self.progress.setVisible(True)
+
+            keyword = self.search_input.text()
+            limit = 20
+            page = self.page
+            subject = self.subject_input.currentText()
+            grade = self.grade_input.currentText()
+            type = self.type_input.currentText()
+            time = self.time_input.value()
+            place = self.region_input.currentText()
+
+            if type == "全部":
+                type = ""
+            
+            if place == "北京":
+                place = ""
+
+            self.logger.info(
+                f"Start searching with args: {keyword=} {subject=} {grade=} {type=} {time=} {place=} {page=} {limit=}",)
+            
+            def finished(data):
+                global search_count
+
+                self.search_button.setEnabled(True)
+                self.progress.setVisible(False)
+                self.page_back_button.setEnabled(True)
+                self.page_forward_button.setEnabled(True)
+
+
+                if data[0]:
+                    if get_total:
+                        if data[2] % 20 == 0:
+                            self.max_page = data[2] // 20
+                        else:
+                            self.max_page = data[2] // 20 + 1
+
+                    
+                        self.logger.info(f"Search completed with {len(data[1])} results. total: {data[2]}")
+                    else:
+                        self.logger.info(f"Search completed with {len(data[1])} results. ")
+                    
+                    self.page_label.setText(f"{self.page}/{self.max_page} 共 {data[2]} 条")
+
+                    self.showContentData(data[1])
+                    
+                else:
+                    self.logger.warning(f"Search failed with error: {data[1]}",)
+
+            self.searchWorker = SearchWorker(keyword, subject, grade, type, time, place, page, limit, get_total)
+            self.searchWorker.finished.connect(finished)
+            self.searchWorker.start()
