@@ -175,6 +175,7 @@ class Preferred(QFrame):
 
         self.type_input = ComboBox()
         self.type_input.addItems(["全部","汇编", "测试", "课件", "讲义", "知识", "专辑"])
+        search_layout.addWidget(self.type_input)
 
         self.assembly_type_label = BodyLabel("汇编类型：")
         self.assembly_type_label.setVisible(False)

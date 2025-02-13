@@ -174,3 +174,42 @@ class SearchPage(SearchPage):
             self.searchWorker = SearchWorker(keyword, subject, grade, type, time, place, page, limit, get_total)
             self.searchWorker.finished.connect(finished)
             self.searchWorker.start()
+
+
+class Preferred(Preferred):
+    def __init__(self, config, logger, parent=None):
+        super().__init__(config, parent)
+
+        self.logger = logger
+
+        now = datetime.now()
+        self.time_input.setRange(2000, now.year)
+        self.time_input.setValue(now.year)
+
+        self.type_input.currentIndexChanged.connect(self.changeAssembly)
+        self.state_input.currentIndexChanged.connect(self.stateChanged)
+
+    def changeAssembly(self):
+        if self.type_input.currentText() == "汇编":
+            self.assembly_grade_label.show()
+            self.assembly_grade_input.show()
+            self.assembly_type_input.show()
+            self.assembly_type_label.show()
+        else:
+            self.assembly_grade_label.hide()
+            self.assembly_grade_input.hide()
+            self.assembly_type_input.hide()
+            self.assembly_type_label.hide()
+
+    def stateChanged(self):
+        current =self.state_input.currentIndex()
+        if current == 0:
+            self.assembly_grade_input.clear()
+            self.assembly_grade_input.addItems(["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"])
+        elif current == 1:
+            self.assembly_grade_input.clear()
+            self.assembly_grade_input.addItems(["初一", "初二", "初三"])
+        elif current == 2:
+            self.assembly_grade_input.clear()
+            self.assembly_grade_input.addItems(["高一", "高二", "高三"])
+
