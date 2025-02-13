@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton, MessageBoxBase,
                             PrimaryPushButton, IndeterminateProgressBar,  ProgressBar, TitleLabel,
                             SwitchButton, SingleDirectionScrollArea, SmoothMode, IndeterminateProgressRing,
-                             BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel
+                             BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel, FluentWindow, NavigationItemPosition
                             )
 from qfluentwidgets import FluentIcon as FIF
 
@@ -405,6 +405,46 @@ class LoadingWindow(MessageBoxBase):
 
         self.buttonGroup.deleteLater()
         self.buttonLayout.deleteLater()
+
+
+class MainWindow(FluentWindow):
+    def __init__(self, config, logger):
+        super().__init__()
+
+        import libs.pages_logical as logical
+
+        self.config = config
+        self.logger = logger
+
+        self.setWindowTitle("BeijingTiKu") # 设置窗口标题
+
+        self.searchInterface = logical.SearchPage(config, logger, self)
+        self.searchInterface.setObjectName("searchInterface")
+        
+        self.preferredInterface = logical.Preferred(config, self)
+        self.preferredInterface.setObjectName("preferredInterface")
+
+        self.localInterface = logical.LocalPage(self)
+        self.localInterface.setObjectName("localInterface")
+
+        self.collectsInterface = logical.CollectsPage(self)
+        self.collectsInterface.setObjectName("collectsInterface")
+
+        self.settingInterface = logical.SettingsPage(self)
+        self.settingInterface.setObjectName("settingInterface")
+
+        self.initNavigation()
+         
+    def initNavigation(self):
+
+        self.addSubInterface(self.searchInterface, FIF.DOCUMENT, "试卷")
+        self.addSubInterface(self.preferredInterface, FIF.FLAG, "优选")
+
+        self.addSubInterface(self.localInterface, FIF.FOLDER, "本地")
+        self.addSubInterface(self.collectsInterface, FIF.HEART, "收藏")
+
+
+        self.addSubInterface(self.settingInterface, FIF.SETTING, "设置", NavigationItemPosition.BOTTOM)
 
 
 
