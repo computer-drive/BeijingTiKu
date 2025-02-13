@@ -4,4 +4,4 @@ cache/
 *.pyc
 *.pyd
 config.json
-version.txt
+versions.txt
