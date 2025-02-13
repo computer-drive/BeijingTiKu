@@ -3,16 +3,30 @@ import colorlog
 import os
 import threading
 from utility.ansi import fore, back, style
+import inspect
 
 class LogFormatter(colorlog.ColoredFormatter):
     def format(self, record):
-        record.type_name = getattr(record, 'type_name', 'main')
 
         record.thread = threading.current_thread().name
         record.levelname = record.levelname.lower()
         record.color = ""
+
+        frame = inspect.currentframe()
+        if frame:
+            frame = frame.f_back
+            while frame:
+                if frame.f_code.co_filename == record.pathname:
+                    record.class_name = frame.f_locals.get("self").__class__.__name__
+                    if record.class_name == "NoneType":
+                        record.class_name = getattr(record, 'class', 'Main')
+                    break
+                frame = frame.f_back
+        else:
+            record.class_name = "Unknown"
         
 
+        
         match record.levelname:
             case 'debug':
                 record.color = fore.CYAN
@@ -27,11 +41,14 @@ class LogFormatter(colorlog.ColoredFormatter):
 
         
         return super().format(record)
+
+
+    
     
 
 def create_logger(name:str = "",
                   level:int = logging.INFO,
-                  format:str = "%(color)s%(type_name)s %(levelname)s %(message)s%(reset)s",
+                  format:str = "%(color)s%(class_name)s %(levelname)s %(message)s%(reset)s",
                   file_logger:bool = True,
                   file_logger_path:str = "logs",
                   file_logger_name:str = "app.log"
@@ -43,6 +60,7 @@ def create_logger(name:str = "",
         format,
         reset=True
     )
+
     
     console_handler = colorlog.StreamHandler()
     console_handler.setFormatter(formatter)
