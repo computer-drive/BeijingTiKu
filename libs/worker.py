@@ -3,22 +3,60 @@ import logging
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from qfluentwidgets import InfoBar
 import requests
+from typing import Literal
 
 
 download_count = 0
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
+def get_data(url, args=None, user_agent=USER_AGENT, timeout=10, data_type:Literal["json", "text", "bytes", "response"]="json"):
+    headers = {
+        "User-Agent": user_agent
+    }
+    
+    try:
+        response = requests.get(url, params=args, headers=headers, timeout=timeout)
+
+        if response.ok:
+            match data_type:
+                case "json":
+                    return (True, response.json())
+                case "text":
+                    return (True, response.text)
+                case "bytes":
+                    return (True, response.content)
+                case "response":
+                    return (True, response)
+        else:
+            return (False, response.status_code)
+
+    except Exception as e:
+        return (False, e)
+    
 def get_total(args):
     args["page"] = 114514
 
-    try:
-        r = requests.get("https://www.jingshibang.com/api/products", params=args)
-
-        return r.json()["data"][0]["count"]
-    
-    except Exception as e:
+    status, data = get_data("https://www.jingshibang.com/api/products", args, timeout=10)
+    if status:
+        return data["data"][0]["count"]
+    else:
         return 0
+
+class RequestsWorker(QThread):
+    finished = pyqtSignal(tuple)
+
+    def __init__(self, url, args=None, user_agent=USER_AGENT, timeout=10):
+        super().__init__()
+
+        self.url = url
+        self.args = args
+        self.user_agent = user_agent
+        self.timeout = timeout
+
+    def run(self):
+        status, data = get_data(self.url, self.args, self.user_agent, self.timeout)
+        self.finished.emit((status, data))
 
 
 
@@ -49,28 +87,15 @@ class SearchWorker(QThread):
             "district": self.place,
         }
 
-        headers = {
-            "User-Agent": USER_AGENT
-        }
+        status, data = get_data("https://www.jingshibang.com/api/products", args)
 
-        try:
-            response = requests.get("https://www.jingshibang.com/api/products",
-                                    headers=headers, params=args)
+        if status:
+
+            total = get_total(args)
+            self.finished.emit((status, data, total))
             
-            if response.ok:
-
-                data = response.json()
-
-                if get_total:
-                    total = get_total(args)
-                    self.finished.emit((True, data["data"], total))
-                else:
-                    self.finished.emit((True, data["data"], 0))
-            else:
-                self.finished.emit((False, response.status_code))
-        
-        except Exception as e:
-            self.finished.emit((False, e))
+        else:
+            self.finished.emit((status, data, 0))
 
 class Downloader(QThread):
     finished = pyqtSignal(tuple)
