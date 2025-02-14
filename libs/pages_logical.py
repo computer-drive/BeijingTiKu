@@ -1,6 +1,6 @@
-from libs.pages import SearchPage, Preferred, LocalPage, CollectsPage, SettingsPage
+from libs.pages import SearchPage, Preferred, LocalPage, CollectsPage, SettingsPage, LoadingWindow
 from libs.widgets import ItemCard
-from libs.worker import SearchWorker
+from libs.worker import SearchWorker, GetCategoryWorker
 from qfluentwidgets import InfoBar
 from PyQt5.QtCore import Qt
 from datetime import datetime
@@ -182,12 +182,17 @@ class Preferred(Preferred):
 
         self.logger = logger
 
+        self.catetory = None
+
         now = datetime.now()
         self.time_input.setRange(2000, now.year)
         self.time_input.setValue(now.year)
 
         self.type_input.currentIndexChanged.connect(self.changeAssembly)
         self.state_input.currentIndexChanged.connect(self.stateChanged)
+
+        self.showEvent = self.getCategory
+
 
     def changeAssembly(self):
         if self.type_input.currentText() == "汇编":
@@ -212,4 +217,26 @@ class Preferred(Preferred):
         elif current == 2:
             self.assembly_grade_input.clear()
             self.assembly_grade_input.addItems(["高一", "高二", "高三"])
+
+    def getCategory(self, event):
+        def finished(data):
+            self.logger.info("Get category finished.")
+
+            self.category = data[1]["data"]["category"]
+
+            loading.close()
+
+        self.logger.info("Getting category.")
+        
+        loading = LoadingWindow("正在加载", "正在获取分类", self)
+
+        loading.worker = GetCategoryWorker()
+        loading.worker.finished.connect(finished)
+
+        loading.show()
+        loading.worker.start()
+
+
+
+        
 
