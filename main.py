@@ -4,7 +4,10 @@ from libs.pages import MainWindow
 from libs.log import create_logger
 from PyQt5.QtWidgets import QApplication
 from utility.config import JsonConfig
+from libs.except_hook import except_hook
+    
 
+sys.excepthook = except_hook
 
 search_count = 0
 
@@ -16,22 +19,17 @@ config = JsonConfig("config.json")
 
 if __name__ == "__main__":
     logger.info("App Started.")
-    try:
-        app = QApplication(sys.argv)
 
-        w = MainWindow(config, logger)
+    app = QApplication(sys.argv)
+
+    w = MainWindow(config, logger)
         
-        w.show()
+    w.show()
 
-        result = app.exec_()
+    result = app.exec_()
 
-        if result == 0:
-            logger.info(f"App Closed with code {result}.")
-        else:
-            logger.error(f"App Closed with code {result}")
+    logger.info(f"App Closed with code {result}")
         
-        sys.exit(result)
-    except Exception as e:
-        logger.error(f"An error occured while running: {e.__class__.__name__}.")
-        logger.exception(e)
+    sys.exit(result)
+
  
