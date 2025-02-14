@@ -188,13 +188,13 @@ class Preferred(QFrame):
         search_layout.addWidget(self.assembly_type_input)
 
         self.assembly_grade_label = BodyLabel("汇编年级：")
-        self.assembly_grade_label.setVisible(False)
         search_layout.addWidget(self.assembly_grade_label)
 
         self.assembly_grade_input = ComboBox()
+        self.assembly_grade_input.addItems(["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"])
         self.assembly_grade_input.setVisible(False)
         search_layout.addWidget(self.assembly_grade_input)
-        
+
 
         search_layout.addWidget(BodyLabel("时间："))
 
@@ -453,7 +453,7 @@ class MainWindow(FluentWindow):
         self.searchInterface = logical.SearchPage(config, logger, self)
         self.searchInterface.setObjectName("searchInterface")
         
-        self.preferredInterface = logical.Preferred(config, self)
+        self.preferredInterface = logical.Preferred(config, logger, self)
         self.preferredInterface.setObjectName("preferredInterface")
 
         self.localInterface = logical.LocalPage(self)
