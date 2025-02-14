@@ -1,7 +1,7 @@
 from datetime import datetime
 from traceback import format_tb
-from os.path import exists
-from os import makedirs
+from os.path import exists, join
+from os import makedirs, getcwd
 from logging import getLogger
 from json import dumps
 from sys import exit, argv
@@ -28,7 +28,8 @@ def except_hook(exctype, value, tb):
             "time": now.strftime("%Y-%m-%d %H:%M:%S"),
             "error_type": f"{exctype.__name__}:{value}",
             "traceback": f"{tb_str}\n   {exctype.__name__}: {value}",
-            "app_path": argv[0]
+            "app_path": argv[0],
+            "log": join(getcwd(), "logs", f"{now.strftime('%Y-%m-%d')}.log")
         },
         indent=4, ensure_ascii=False))
 
