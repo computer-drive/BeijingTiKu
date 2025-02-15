@@ -17,7 +17,7 @@ def get_data(url, args=None, user_agent=USER_AGENT, timeout=10, data_type:Litera
     
     try:
         response = requests.get(url, params=args, headers=headers, timeout=timeout)
-
+        # print(response.url)
         if response.ok:
             match data_type:
                 case "json":
@@ -210,7 +210,64 @@ class GetPointsWorker(RequestsWorker):
 
         self.finished.emit((status, data, self.pid))
 
+class GetPapersListWorker(RequestsWorker):
 
+    def __init__(self, page, subject, grade, limit=10):
+        super().__init__(f"https://www.jingshibang.com/api/smallclass/paperlist")
+
+        self.args = {
+            "is_pc": 1,
+            "page": page,
+            "limit": limit,
+            "store_subject": subject,
+            "store_grade": grade,
+            "store_type": "",
+            "store_year": None,
+            "moudle": None,
+            "chapter": None,
+            "pointid": None,
+            "moudle_name": "",
+            "chapter_name": "",
+            "point_name": "",
+            "assembly_grade": "",
+            "assembly_type": ""
+        }
+
+    def setType(self, type):
+        self.args["store_type"] = type
+        return self
+
+    def setYear(self, year):
+        self.args["store_year"] = year
+        return self
+    
+    def setModule(self, id, name):
+        self.args["moudle"] = id
+        self.args["moudle_name"] = name
+        return self
+
+    def setChapter(self, id, name):
+        self.args["chapter"] = id
+        self.args["chapter_name"] = name
+        return self
+    
+    def setPoint(self, id, name):
+        self.args["pointid"] = id
+        self.args["point_name"] = name
+        return self
+
+    def setAssembly(self, grade, type):
+        self.args["assembly_grade"] = grade
+        self.args["assembly_type"] = type
+        return self
+
+    def build(self):
+        return self.args
+    
+    def run(self):
+        status, data = self.__run__()
+        
+        self.finished.emit((status, data))
 
 # class GetCategoryWorker(QThread):
 #     finished = pyqtSignal(tuple)
