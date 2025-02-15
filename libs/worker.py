@@ -54,48 +54,38 @@ class RequestsWorker(QThread):
         self.user_agent = user_agent
         self.timeout = timeout
 
-    def run(self):
+    def __run__(self):
         status, data = get_data(self.url, self.args, self.user_agent, self.timeout)
-        self.finished.emit((status, data))
+
+        return (status, data)
 
 
-
-class SearchWorker(QThread):
-    finished = pyqtSignal(tuple)
-
+class SearchWorker(RequestsWorker):
     def __init__(self, keyword, subject, grade, type, time, place, page, limit=20, get_total=False):
-        super().__init__()
-
-        self.keyword = keyword
-        self.subject = subject
-        self.grade = grade
-        self.type = type
-        self.time = time
-        self.place = place
-        self.page = page
-        self.limit = limit
-    
-    def run(self):
-        args = {
-            "page": self.page,
-            "limit": self.limit,
-            "keyword": self.keyword,
-            "store_subject": self.subject,
-            "store_grade": self.grade,
-            "store_type": self.type,
-            "store_year": self.time,
-            "district": self.place,
+        self.args = {
+            "page": page,
+            "limit": limit,
+            "keyword": keyword,
+            "store_subject": subject,
+            "store_grade": grade,
+            "store_type": type,
+            "store_year": time,
+            "district": place,
         }
 
-        status, data = get_data("https://www.jingshibang.com/api/products", args)
+        super().__init__(
+            "https://www.jingshibang.com/api/products",
+            self.args
+        )
+
+    def run(self):
+        status, data = self.__run__()
 
         if status:
-
-            total = get_total(args)
-            self.finished.emit((status, data, total))
-            
+            total = get_total(self.args)
+            self.finished.emit((status, data["data"], total))
         else:
-            self.finished.emit((status, data, 0))
+            self.finished.emit((status, data["data"], 0))
 
 class Downloader(QThread):
     finished = pyqtSignal(tuple)
@@ -186,25 +176,61 @@ def download_file(url:str, save_path:str, title:str, user_agent:str=USER_AGENT, 
 
     progress_window.show()
 
-class GetCategoryWorker(QThread):
-    finished = pyqtSignal(tuple)
+
+class GetCategoryWorker(RequestsWorker):
+
+    def __init__(self):
+        super().__init__("https://www.jingshibang.com/api/smallclass/smallclasscategory")
     
-    def __init__(self, user_agent:str=USER_AGENT):
-        super().__init__()
-        self.user_agent = user_agent
+    def run(self):
+        status, data = self.__run__()
+
+        if status:
+            self.finished.emit((True, data))
+        else:
+            self.finished.emit((False, data))
+
+class GetPointsWorker(RequestsWorker):
+    
+    def __init__(self, pid):
+        args = {
+            "pid": pid,
+            "level": 2
+        }
+        super().__init__(f"https://www.jingshibang.com/api/smallclass/getcategory", args)
+        self.pid = pid
+
+        self.logger = logging.getLogger("Main")
+        self.logger.info(f"Getting points for {pid}")
 
     def run(self):
-        headers = {
-            "User-Agent": self.user_agent
-        }
-        try:
-            response = requests.get("https://www.jingshibang.com/api/smallclass/smallclasscategory", headers=headers)
-            if response.ok:
-                self.finished.emit((True, response.json()))
-            else:
-                self.finished.emit((False, response.status_code))
-        except Exception as e:
-            self.finished.emit((False, e))
+        status, data = self.__run__()
+
+        self.logger.info(f"Got points for {self.args['pid']}: {status}")
+
+        self.finished.emit((status, data, self.pid))
+
+
+
+# class GetCategoryWorker(QThread):
+#     finished = pyqtSignal(tuple)
+    
+#     def __init__(self, user_agent:str=USER_AGENT):
+#         super().__init__()
+#         self.user_agent = user_agent
+
+#     def run(self):
+#         headers = {
+#             "User-Agent": self.user_agent
+#         }
+#         try:
+#             response = requests.get("https://www.jingshibang.com/api/smallclass/smallclasscategory", headers=headers)
+#             if response.ok:
+#                 self.finished.emit((True, response.json()))
+#             else:
+#                 self.finished.emit((False, response.status_code))
+#         except Exception as e:
+#             self.finished.emit((False, e))
 
 
 
