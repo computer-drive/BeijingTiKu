@@ -1,6 +1,7 @@
 from libs.pages import SearchPage, Preferred, LocalPage, CollectsPage, SettingsPage, LoadingWindow
 from libs.widgets import ItemCard
-from libs.worker import SearchWorker, GetCategoryWorker, GetPointsWorker
+from libs.worker import (SearchWorker, GetCategoryWorker,
+                          GetPointsWorker, GetPapersListWorker)
 from qfluentwidgets import InfoBar
 from PyQt5.QtWidgets import  QTreeWidgetItem
 from PyQt5.QtCore import Qt
@@ -182,13 +183,17 @@ class Preferred(Preferred):
         self.logger = logger
 
         self.catetory = None
-        self.currentMoudle = (0, "")
-        self.currentChapter = (0, "")
-        self.currentPoint = (0, "")
+        self.currentMoudle = (None, "")
+        self.currentChapter = (None, "")
+        self.currentPoint = (None, "")
         self.workers = {}
+        self.page = 1
+        self.max_page = 1
+        self.__started_search__ = False
+        self.got_category = False
 
         now = datetime.now()
-        self.time_input.setRange(2000, now.year)
+        self.time_input.setRange(0, now.year)
         self.time_input.setValue(now.year)
 
         self.type_input.currentIndexChanged.connect(self.changeAssembly)
@@ -197,7 +202,13 @@ class Preferred(Preferred):
         self.state_input.currentIndexChanged.connect(self.showCateGory)
         self.subject_input.currentIndexChanged.connect(self.showCateGory)
 
+        self.all_time_button.clicked.connect(lambda: self.time_input.setValue(0))
+
         self.showEvent = self.getCategory
+
+        self.loading = LoadingWindow("正在加载", "[DefaultText]", self)
+
+        
 
 
     def changeAssembly(self):
@@ -225,6 +236,9 @@ class Preferred(Preferred):
             self.assembly_grade_input.addItems(["高一", "高二", "高三"])
 
     def getCategory(self, event):
+        if self.got_category:
+            return
+        
         def finished(data):
             self.logger.info("Get category finished.")
 
@@ -232,14 +246,17 @@ class Preferred(Preferred):
 
             self.showCateGory()
 
+            self.got_category = True
+
 
         self.logger.info("Getting category.")
         
-        self.loading = LoadingWindow("正在加载", "正在获取分类", self)
+        
 
         self.loading.worker = GetCategoryWorker()
         self.loading.worker.finished.connect(finished)
 
+        self.loading.content_label.setText("正在获取分类")
         self.loading.show()
         self.loading.worker.start()
 
@@ -252,6 +269,11 @@ class Preferred(Preferred):
             self.currentCate = (item.id, item.name)
         elif item.typ == "point":
             self.currentPoint = (item.id, item.name)
+
+        
+        if not self.__started_search__:
+            self.search()
+
 
     
 
@@ -348,6 +370,81 @@ class Preferred(Preferred):
 
             self.catetory_widget.addTopLevelItem(moudle_item)
             self.catetory_widget.itemClicked.connect(self.changeItem)   
+
+    def search(self):
+        self.content_data_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        _layout_clear(self.content_data_layout)
+        self.initSearchLoading()
+
+
+        subject = self.subject_input.currentText()
+        grade = self.state_input.currentText()
+        store_type = self.type_input.currentText()
+        year = self.time_input.value()
+        
+        assembly_grade = ""
+        assembly_type = ""
+        if store_type == "汇编":
+            assembly_type = self.assembly_type_input.currentText()
+            assembly_grade = self.assembly_grade_input.currentText()
+
+        if store_type == "全部":
+            store_type = ""
+
+        if year == 0:
+            year = ""
+
+        def finished(data):
+
+            self.search_loading.hide()
+            self.content_data_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+            self.logger.info("Search finished")
+            self.__started_search__ = False  
+
+
+            if data[0]:
+                
+
+                count = data[1]["data"]["count"]
+
+                for item in data[1]["data"]["list"]:
+                    if item["is_hot"] == 1:
+                        is_hot = True
+                    else:
+                        is_hot = False
+
+                    item_widget = ItemCard(
+                        item["id"],
+                        item["store_name"],
+                        item["browse"],
+                        item["upload_num"],
+                        "菁师帮",
+                        item["add_time"],
+                        is_hot,
+                        False,
+                        "",
+                        "",
+                        self.config
+                    )
+                    self.content_data_layout.addWidget(item_widget)
+
+        self.search_worker = GetPapersListWorker(self.page,
+                                                subject,
+                                                grade).setType(store_type)
+        
+        self.search_worker.setType(store_type).setYear(year).setModule(*self.currentMoudle)
+        self.search_worker.setChapter(*self.currentChapter).setPoint(*self.currentPoint)
+        self.search_worker.setAssembly(assembly_type, assembly_grade)
+        self.search_worker.finished.connect(finished)
+
+        self.__started_search__ = True
+        self.logger.info("Start Searching")
+
+        self.search_worker.start()
+
+
+        
         
 
 
