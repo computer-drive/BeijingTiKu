@@ -200,13 +200,10 @@ class GetPointsWorker(RequestsWorker):
         super().__init__(f"https://www.jingshibang.com/api/smallclass/getcategory", args)
         self.pid = pid
 
-        self.logger = logging.getLogger("Main")
-        self.logger.info(f"Getting points for {pid}")
 
     def run(self):
         status, data = self.__run__()
 
-        self.logger.info(f"Got points for {self.args['pid']}: {status}")
 
         self.finished.emit((status, data, self.pid))
 
