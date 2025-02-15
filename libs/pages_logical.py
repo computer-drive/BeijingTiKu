@@ -348,6 +348,7 @@ class Preferred(Preferred):
 
              
                 worker = GetPointsWorker(chapter["id"])
+                
                 self.workers[chapter["id"]] = {
                     "worker": worker,
                     "finished": False,
@@ -355,6 +356,8 @@ class Preferred(Preferred):
                 }
                 worker.finished.connect(finished)
                 worker.start()
+            
+            self.logger.info(f"Getting {len(moudle["items"])} chapters points from {moudle["cate_name"]}")
 
 
                 # for point in chapter["items"]:
@@ -384,13 +387,17 @@ class Preferred(Preferred):
         
         assembly_grade = ""
         assembly_type = ""
+
         if store_type == "汇编":
             assembly_type = self.assembly_type_input.currentText()
             assembly_grade = self.assembly_grade_input.currentText()
+            # print(assembly_grade, assembly_type)
 
         if store_type == "全部":
             store_type = ""
 
+        if assembly_type == "全部":
+            assembly_type = ""
         if year == 0:
             year = ""
 
@@ -404,10 +411,13 @@ class Preferred(Preferred):
 
 
             if data[0]:
-                
-
+            
                 count = data[1]["data"]["count"]
 
+                if len(data[1]["data"]["list"]) == 0:
+                    self.content_data_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.initSearchNull()
+                
                 for item in data[1]["data"]["list"]:
                     if item["is_hot"] == 1:
                         is_hot = True
@@ -435,7 +445,7 @@ class Preferred(Preferred):
         
         self.search_worker.setType(store_type).setYear(year).setModule(*self.currentMoudle)
         self.search_worker.setChapter(*self.currentChapter).setPoint(*self.currentPoint)
-        self.search_worker.setAssembly(assembly_type, assembly_grade)
+        self.search_worker.setAssembly(assembly_grade, assembly_type)
         self.search_worker.finished.connect(finished)
 
         self.__started_search__ = True
