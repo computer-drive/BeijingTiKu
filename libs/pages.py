@@ -207,7 +207,8 @@ class Preferred(QFrame):
     def initContent(self):
         content_layout = QHBoxLayout()
 
-        self.catetory_widget = TreeWidget()
+        self.catetory_widget = TreeWidget(self)
+        self.catetory_widget.setHeaderHidden(True)
         content_layout.addWidget(self.catetory_widget)
 
         self.content_data_layout = QVBoxLayout()
