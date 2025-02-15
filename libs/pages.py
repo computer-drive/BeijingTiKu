@@ -188,6 +188,7 @@ class Preferred(QFrame):
         search_layout.addWidget(self.assembly_type_input)
 
         self.assembly_grade_label = BodyLabel("汇编年级：")
+        self.assembly_grade_label.setVisible(False)
         search_layout.addWidget(self.assembly_grade_label)
 
         self.assembly_grade_input = ComboBox()
@@ -211,7 +212,7 @@ class Preferred(QFrame):
         content_layout = QHBoxLayout()
 
         self.catetory_widget = TreeWidget(self)
-        self.catetory_widget.setFixedWidth(200)
+        self.catetory_widget.setFixedWidth(300)
         self.catetory_widget.setHeaderHidden(True)
         content_layout.addWidget(self.catetory_widget)
 
@@ -239,6 +240,18 @@ class Preferred(QFrame):
         self.search_loading.setFixedSize(60, 60)
         self.content_data_layout.addWidget(self.search_loading, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
 
+    def initSearchNull(self):
+        
+        self.icon_label = BodyLabel("(>_<)")
+        self.icon_label.setStyleSheet("font-size: 60px;")
+        self.content_data_layout.addWidget(self.icon_label, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
+
+        self.null_label = BodyLabel("没有找到相关内容")
+        self.null_label.setStyleSheet("font-size: 20px;")
+        self.content_data_layout.addWidget(self.null_label, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
+
+
+        
         
 
 
