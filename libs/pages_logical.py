@@ -1,11 +1,11 @@
 from libs.pages import SearchPage, Preferred, LocalPage, CollectsPage, SettingsPage, LoadingWindow
 from libs.widgets import ItemCard
-from libs.worker import SearchWorker, GetCategoryWorker
+from libs.worker import SearchWorker, GetCategoryWorker, GetPointsWorker
 from qfluentwidgets import InfoBar
+from PyQt5.QtWidgets import  QTreeWidgetItem
 from PyQt5.QtCore import Qt
 from datetime import datetime
-
-
+import json
 
 def _layout_clear(layout):
     while layout.count():
@@ -70,15 +70,14 @@ class SearchPage(SearchPage):
             else:
                 word_file = item["word_answer"]
 
-            # print(self)
             self.content_data.content_layout.addWidget(ItemCard(
-            item["id"], item["store_name"],
-            item["browse"], item["upload_num"],
-            item["upload_people"], item["add_time"],
-            is_hot, is_real,
-            pdf_file, word_file,
-            self.config,
-            self 
+                item["id"], item["store_name"],
+                item["browse"], item["upload_num"],
+                item["upload_people"], item["add_time"],
+                is_hot, is_real,
+                pdf_file, word_file,
+                self.config,
+                self 
             ))
     
     def stageChange(self):
@@ -94,7 +93,7 @@ class SearchPage(SearchPage):
         self.grade_input.clear()
         self.grade_input.addItems(grade)
 
-    def nextPage(self, search):
+    def nextPage(self):
         if self.page < self.max_page:
             self.page += 1
             self.page_back_button.setEnabled(True)
@@ -183,6 +182,10 @@ class Preferred(Preferred):
         self.logger = logger
 
         self.catetory = None
+        self.currentMoudle = (0, "")
+        self.currentChapter = (0, "")
+        self.currentPoint = (0, "")
+        self.workers = {}
 
         now = datetime.now()
         self.time_input.setRange(2000, now.year)
@@ -190,6 +193,9 @@ class Preferred(Preferred):
 
         self.type_input.currentIndexChanged.connect(self.changeAssembly)
         self.state_input.currentIndexChanged.connect(self.stateChanged)
+
+        self.state_input.currentIndexChanged.connect(self.showCateGory)
+        self.subject_input.currentIndexChanged.connect(self.showCateGory)
 
         self.showEvent = self.getCategory
 
@@ -207,7 +213,7 @@ class Preferred(Preferred):
             self.assembly_type_label.hide()
 
     def stateChanged(self):
-        current =self.state_input.currentIndex()
+        current = self.state_input.currentIndex()
         if current == 0:
             self.assembly_grade_input.clear()
             self.assembly_grade_input.addItems(["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"])
@@ -224,17 +230,130 @@ class Preferred(Preferred):
 
             self.category = data[1]["data"]["category"]
 
-            loading.close()
+            self.showCateGory()
+
 
         self.logger.info("Getting category.")
         
-        loading = LoadingWindow("正在加载", "正在获取分类", self)
+        self.loading = LoadingWindow("正在加载", "正在获取分类", self)
 
-        loading.worker = GetCategoryWorker()
-        loading.worker.finished.connect(finished)
+        self.loading.worker = GetCategoryWorker()
+        self.loading.worker.finished.connect(finished)
 
-        loading.show()
-        loading.worker.start()
+        self.loading.show()
+        self.loading.worker.start()
+
+    def changeItem(self, item, column):
+
+        # print(item.id, item.name)
+        if item.typ == "moudle":
+            self.currentMoudle = (item.id, item.name)
+        elif item.typ == "chapter":
+            self.currentCate = (item.id, item.name)
+        elif item.typ == "point":
+            self.currentPoint = (item.id, item.name)
+
+    
+
+    def showCateGory(self):
+        # print(self.loading.isVisible())
+        if not self.loading.isVisible():
+            self.loading.show()
+
+
+        currentSubject = self.subject_input.currentText()
+        currentState = self.state_input.currentText()
+        
+        subject_cate = None
+        state_cate = None
+
+        self.catetory_widget.clear()
+        for cate in self.category:
+            if cate["cate_name"] == currentSubject:
+                subject_cate = cate
+                break
+        
+        if subject_cate is None:
+            InfoBar.error("加载错误",f"未找到学科 {currentSubject}")
+            return
+
+        # print(json.dumps(subject_cate))
+        for cate in subject_cate["items"]:
+            if cate["cate_name"] == currentState:
+                state_cate = cate
+                break
+        
+        if state_cate is None:
+            InfoBar.error("加载错误",f"未找到学科 {currentSubject} 的阶段 {currentState}")
+            return
+        
+        for moudle in state_cate["items"]:
+            moudle_item = QTreeWidgetItem([moudle["cate_name"]])
+            moudle_item.id = moudle["id"]
+            moudle_item.name = moudle["cate_name"]
+            moudle_item.typ = "moudle"
+
+
+            for chapter in moudle["items"]:
+                chapter_item = QTreeWidgetItem([chapter["cate_name"]])
+                chapter_item.id = chapter["id"]
+                chapter_item.name = chapter["cate_name"]
+                chapter_item.typ = "chapter"
+
+                moudle_item.addChild(chapter_item)
+            
+                def finished(message):
+                    if message[0]:
+                        for point in message[1]["data"]:
+
+                            point_item = QTreeWidgetItem([point["label"]])
+                            point_item.id = point["value"]
+                            point_item.name = point["label"]
+                            point_item.typ = "point"
+                            self.workers[message[2]]["chapter"].addChild(point_item)
+
+
+                    self.workers[message[2]]["finished"] = True
+
+                    all = True
+                    for key in self.workers:
+                        if not self.workers[key]["finished"]:
+                            all = False
+                            break
+
+                    if all:
+                        self.loading.close()
+
+             
+                worker = GetPointsWorker(chapter["id"])
+                self.workers[chapter["id"]] = {
+                    "worker": worker,
+                    "finished": False,
+                    "chapter": chapter_item
+                }
+                worker.finished.connect(finished)
+                worker.start()
+
+
+                # for point in chapter["items"]:
+                #     point_item = QTreeWidgetItem([point["cate_name"]])
+                    
+                #     point_item.id = point["id"]
+                #     point_item.name = point["cate_name"]
+                #     point_item.typ = "point"
+
+                #     chapter_item.addChild(point_item)
+
+                
+
+            self.catetory_widget.addTopLevelItem(moudle_item)
+            self.catetory_widget.itemClicked.connect(self.changeItem)   
+        
+
+
+
+                
+                
 
 
 
