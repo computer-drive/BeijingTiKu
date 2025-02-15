@@ -199,7 +199,10 @@ class Preferred(QFrame):
         search_layout.addWidget(BodyLabel("时间："))
 
         self.time_input = SpinBox()
-        search_layout.addWidget(self.time_input)    
+        search_layout.addWidget(self.time_input)
+
+        self.all_time_button = PrimaryPushButton("全部")
+        search_layout.addWidget(self.all_time_button)
 
 
         return search_layout
@@ -208,13 +211,33 @@ class Preferred(QFrame):
         content_layout = QHBoxLayout()
 
         self.catetory_widget = TreeWidget(self)
+        self.catetory_widget.setFixedWidth(200)
         self.catetory_widget.setHeaderHidden(True)
         content_layout.addWidget(self.catetory_widget)
 
+        scroll_area = SingleDirectionScrollArea(orient=Qt.Vertical)
+        scroll_area.setStyleSheet("QScrollArea{background: transparent; border: none}")
+        scroll_area.setSmoothMode(SmoothMode.NO_SMOOTH)
+        scroll_area.setWidgetResizable(True)
+
+        scroll_widget = QWidget()
+        scroll_widget.setStyleSheet("QWidget{background: transparent}")
+        scroll_area.setWidget(scroll_widget)
+
         self.content_data_layout = QVBoxLayout()
-        content_layout.addLayout(self.content_data_layout)
+        self.content_data_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        scroll_widget.setLayout(self.content_data_layout)
+
+        
+
+        content_layout.addWidget(scroll_area)
 
         return content_layout
+    
+    def initSearchLoading(self):
+        self.search_loading = IndeterminateProgressRing()
+        self.search_loading.setFixedSize(60, 60)
+        self.content_data_layout.addWidget(self.search_loading, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
 
         
 
@@ -431,7 +454,8 @@ class LoadingWindow(MessageBoxBase):
 
         content_layout.addWidget(TitleLabel(title), alignment=Qt.AlignmentFlag.AlignCenter)
 
-        content_layout.addWidget(BodyLabel(content), alignment=Qt.AlignmentFlag.AlignCenter)
+        self.content_label = BodyLabel(content)
+        content_layout.addWidget(self.content_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.viewLayout.addLayout(content_layout)
 
