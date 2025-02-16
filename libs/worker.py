@@ -317,6 +317,11 @@ class LoginWorker(QThread):
         super().__init__(parent)
 
         self.logger = logger
+
+        self.__stop__ = False
+    
+    def stop(self):
+        self.__stop__ = True
     
     def run(self):
         status, wxpic = post_data("https://www.jingshibang.com/api/getwxpic", {})
@@ -329,11 +334,11 @@ class LoginWorker(QThread):
                 self.logger.info(f"Got LoginWechatFlag:{wxpic['data']['weChatFlag']}")
             else:
                 self.logger.error(f"Get LoginQrcodeUrl Error:{wxpic['msg']}")
-                self.error.emit("getQrcode", wxpic["msg"])
+                self.error.emit(("getQrcode", wxpic["msg"]))
                 return
         else:
-            self.logger.error(f"Get LoginQrcodeUrl Error:{status}")
-            self.error.emit("getQrcode", status)
+            self.logger.error(f"Get LoginQrcodeUrl Error:{wxpic}")
+            self.error.emit(("getQrcode", wxpic))
             return
         
         status, qrcode = get_data(qrcode_url, data_type="bytes")
@@ -342,8 +347,8 @@ class LoginWorker(QThread):
             self.logger.info(f"Got LoginQrcode.")
             self.got_qrcode.emit(qrcode)
         else:
-            self.logger.info(f"Get LoginQrcode Error:{status}")
-            self.error.emit("getQrcode", status)
+            self.logger.info(f"Get LoginQrcode Error:{qrcode}")
+            self.error.emit(("getQrcode", qrcode))
             return
 
         logined = False
@@ -354,6 +359,10 @@ class LoginWorker(QThread):
         avator_url = ""
         
         while True:
+            if self.__stop__:
+                self.logger.info("Stopped.")
+                return
+
             status, data = get_data("https://www.jingshibang.com/api/wechat/pcauth2", {"wechat_flag": flag})
 
             if status:
@@ -377,8 +386,8 @@ class LoginWorker(QThread):
                     self.logger.info(f"Wait logining...")
 
             else:
-                self.logger.error(f"Login failed:{status}")
-                self.error.emit("login", status)
+                self.logger.error(f"Login failed:{data}")
+                self.error.emit(("login", data))
                 return
             
             time.sleep(1)
@@ -387,7 +396,7 @@ class LoginWorker(QThread):
             self.logined.emit((token, username, phone, is_vip, avator_url))
         else:
 
-            self.error.emit("login", "unknown")
+            self.error.emit(("login", "unknown"))
             return
 
         status, data = get_data(avator_url, data_type="bytes")
@@ -398,6 +407,6 @@ class LoginWorker(QThread):
             
             self.got_avator.emit(True)
         else:
-            self.error.emit("avator", status)
+            self.error.emit(("avator", data))
 
 
