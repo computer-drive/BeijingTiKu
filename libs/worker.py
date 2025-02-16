@@ -4,6 +4,7 @@ from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from qfluentwidgets import InfoBar
 import requests
 from typing import Literal
+import time
 
 
 download_count = 0
@@ -17,6 +18,30 @@ def get_data(url, args=None, user_agent=USER_AGENT, timeout=10, data_type:Litera
     
     try:
         response = requests.get(url, params=args, headers=headers, timeout=timeout)
+        # print(response.url)
+        if response.ok:
+            match data_type:
+                case "json":
+                    return (True, response.json())
+                case "text":
+                    return (True, response.text)
+                case "bytes":
+                    return (True, response.content)
+                case "response":
+                    return (True, response)
+        else:
+            return (False, response.status_code)
+
+    except Exception as e:
+        return (False, e)
+    
+def post_data(url, data=None, user_agent=USER_AGENT, timeout=10, data_type:Literal["json", "text", "bytes", "response"]="json"):
+    headers = {
+        "User-Agent": user_agent
+    }
+
+    try:
+        response = requests.post(url, data=data, headers=headers, timeout=timeout)
         # print(response.url)
         if response.ok:
             match data_type:
@@ -282,41 +307,97 @@ class GetPapersListWorker(RequestsWorker):
         
         self.finished.emit((status, data))
 
-# class GetCategoryWorker(QThread):
-#     finished = pyqtSignal(tuple)
+class LoginWorker(QThread):
+    got_qrcode = pyqtSignal(bytes)
+    logined = pyqtSignal(tuple)
+    error = pyqtSignal(tuple)
+    got_avator = pyqtSignal(bool)
+
+    def __init__(self, logger, parent=None):
+        super().__init__(parent)
+
+        self.logger = logger
     
-#     def __init__(self, user_agent:str=USER_AGENT):
-#         super().__init__()
-#         self.user_agent = user_agent
+    def run(self):
+        status, wxpic = post_data("https://www.jingshibang.com/api/getwxpic", {})
+        if status:
+            if wxpic["status"] == 200:
+                qrcode_url = wxpic["data"]["url"]
+                flag = wxpic["data"]["weChatFlag"]
 
-#     def run(self):
-#         headers = {
-#             "User-Agent": self.user_agent
-#         }
-#         try:
-#             response = requests.get("https://www.jingshibang.com/api/smallclass/smallclasscategory", headers=headers)
-#             if response.ok:
-#                 self.finished.emit((True, response.json()))
-#             else:
-#                 self.finished.emit((False, response.status_code))
-#         except Exception as e:
-#             self.finished.emit((False, e))
+                self.logger.info(f"Got LoginQrcodeUrl:{wxpic['data']['url']}")
+                self.logger.info(f"Got LoginWechatFlag:{wxpic['data']['weChatFlag']}")
+            else:
+                self.logger.error(f"Get LoginQrcodeUrl Error:{wxpic['msg']}")
+                self.error.emit("getQrcode", wxpic["msg"])
+                return
+        else:
+            self.logger.error(f"Get LoginQrcodeUrl Error:{status}")
+            self.error.emit("getQrcode", status)
+            return
+        
+        status, qrcode = get_data(qrcode_url, data_type="bytes")
+
+        if status:
+            self.logger.info(f"Got LoginQrcode.")
+            self.got_qrcode.emit(qrcode)
+        else:
+            self.logger.info(f"Get LoginQrcode Error:{status}")
+            self.error.emit("getQrcode", status)
+            return
+
+        logined = False
+        token = ""
+        username = ""
+        phone = ""
+        is_vip = False
+        avator_url = ""
+        
+        while True:
+            status, data = get_data("https://www.jingshibang.com/api/wechat/pcauth2", {"wechat_flag": flag})
+
+            if status:
+                if data["status"] == 200:
+                    
+                    logined = True
+                    token = data["data"]["token"]
+                    username = data["data"]["wechatInfo"]["nickname"]
+                    phone = data["data"]["wechatInfo"]["phone"]
+                    if data["data"]["wechatInfo"]["is_vip"] == 1:
+                        is_vip = True
+                    
+                    avator_url = data["data"]["wechatInfo"]["avatar"]
+
+                    self.logger.info("Login success.")
+                    self.logger.info(f"Token:{token}")
+                    self.logger.info(f"Username:{username} Phone:{phone}  IsVip:{is_vip} ")
+                    break
+                
+                else:
+                    self.logger.info(f"Wait logining...")
+
+            else:
+                self.logger.error(f"Login failed:{status}")
+                self.error.emit("login", status)
+                return
+            
+            time.sleep(1)
+
+        if logined:
+            self.logined.emit((token, username, phone, is_vip, avator_url))
+        else:
+
+            self.error.emit("login", "unknown")
+            return
+
+        status, data = get_data(avator_url, data_type="bytes")
+        
+        if status:
+            with open("data/avator.jpg", "wb") as f:
+                f.write(data)
+            
+            self.got_avator.emit(True)
+        else:
+            self.error.emit("avator", status)
 
 
-
-
-
-# if __name__ == "__main__":
-    # app = QApplication([])
-
-
-    # w = FluentWindow()
-
-
-    # loading.show()
-
-
-
-    # w.show()
-
-    # app.exec_()
