@@ -2,9 +2,11 @@ from datetime import datetime
 from traceback import format_tb
 from os.path import exists, join
 from os import makedirs, getcwd
+from os import _exit
 from logging import getLogger
 from json import dumps
-from sys import exit, argv
+from sys import argv
+
 
 
 
@@ -33,4 +35,4 @@ def except_hook(exctype, value, tb):
         },
         indent=4, ensure_ascii=False))
 
-    exit(1)
+    _exit(1)
