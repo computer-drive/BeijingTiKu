@@ -1,12 +1,14 @@
-from libs.pages import SearchPage, Preferred, LocalPage, CollectsPage, SettingsPage, LoadingWindow
+from libs.pages import (SearchPage, Preferred, LocalPage,
+                         CollectsPage, SettingsPage, LoadingWindow,
+                         AccountPage)
 from libs.widgets import ItemCard
 from libs.worker import (SearchWorker, GetCategoryWorker,
                           GetPointsWorker, GetPapersListWorker)
 from qfluentwidgets import InfoBar
 from PyQt5.QtWidgets import  QTreeWidgetItem
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from datetime import datetime
-import json
 
 def _layout_clear(layout):
     while layout.count():
@@ -177,6 +179,7 @@ class SearchPage(SearchPage):
 
 
 class Preferred(Preferred):
+
     def __init__(self, config, logger, parent=None):
         super().__init__(config, parent)
 
@@ -265,8 +268,11 @@ class Preferred(Preferred):
         # print(item.id, item.name)
         if item.typ == "moudle":
             self.currentMoudle = (item.id, item.name)
+            self.currentChapter = (None, '')
+
         elif item.typ == "chapter":
-            self.currentCate = (item.id, item.name)
+            self.currentChapter = (item.id, item.name)
+            self.currentPoint = (None, '')
         elif item.typ == "point":
             self.currentPoint = (item.id, item.name)
 
@@ -401,9 +407,11 @@ class Preferred(Preferred):
         if year == 0:
             year = ""
 
-        def finished(data):
+        # print(subject, grade, store_type, year, assembly_grade, assembly_type, self.currentMoudle, self.currentChapter, self.currentPoint)
 
+        def finished(data):
             self.search_loading.hide()
+            _layout_clear(self.content_data_layout)
             self.content_data_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
             self.logger.info("Search finished")
@@ -419,6 +427,7 @@ class Preferred(Preferred):
                     self.initSearchNull()
                 
                 for item in data[1]["data"]["list"]:
+                    # print(item["store_name"])
                     if item["is_hot"] == 1:
                         is_hot = True
                     else:
@@ -445,15 +454,18 @@ class Preferred(Preferred):
         
         self.search_worker.setType(store_type).setYear(year).setModule(*self.currentMoudle)
         self.search_worker.setChapter(*self.currentChapter).setPoint(*self.currentPoint)
-        self.search_worker.setAssembly(assembly_grade, assembly_type)
+        self.search_worker.setAssembly(assembly_grade, assembly_type).setCatid(self.currentMoudle[0], self.currentChapter[0], self.currentPoint[0])
         self.search_worker.finished.connect(finished)
 
         self.__started_search__ = True
-        self.logger.info("Start Searching")
+        self.logger.info("Start Searching.")
 
         self.search_worker.start()
 
 
+
+    
+        
         
         
 
