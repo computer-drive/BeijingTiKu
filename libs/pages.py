@@ -1,12 +1,14 @@
 from libs.widgets import SettingCard
 from utility.format import format_capacity, format_time
-from PyQt5.QtWidgets import  QVBoxLayout, QHBoxLayout, QFrame, QWidget, QSizePolicy
+from PyQt5.QtWidgets import  (QVBoxLayout, QHBoxLayout, QFrame,
+                              QWidget, QSizePolicy, QLabel)
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton, MessageBoxBase,
                             PrimaryPushButton, IndeterminateProgressBar,  ProgressBar, TitleLabel,
                             SwitchButton, SingleDirectionScrollArea, SmoothMode, IndeterminateProgressRing,
                             BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel, FluentWindow,
-                            NavigationItemPosition, TreeWidget
+                            NavigationItemPosition, TreeWidget, CardWidget,
                             )
 from qfluentwidgets import FluentIcon as FIF
 
@@ -137,7 +139,6 @@ class SearchPage(QFrame):
         self.page_forward_button.setToolTip("下一页")
         self.page_layout.addWidget(self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter)
         
-    
 
 class Preferred(QFrame):
     def __init__(self, config, parent=None):
@@ -250,11 +251,6 @@ class Preferred(QFrame):
         self.null_label.setStyleSheet("font-size: 20px;")
         self.content_data_layout.addWidget(self.null_label, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
 
-
-        
-        
-
-
     
 class LocalPage(QFrame):
     def __init__(self, parent=None):
@@ -268,6 +264,7 @@ class LocalPage(QFrame):
 
         self.setLayout(v_layout)
 
+
 class CollectsPage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -280,8 +277,6 @@ class CollectsPage(QFrame):
 
         self.setLayout(v_layout)
     
-
-
 
 class SettingsPage(QFrame):
     def __init__(self, parent=None):
@@ -414,6 +409,173 @@ class SettingsPage(QFrame):
         v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
 
+class LoginWindow(MessageBoxBase):
+    def __init__(self, config, logger, parent=None):
+        super().__init__(parent)
+
+        self.config = config
+        self.logger = logger
+
+        self.viewLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        top_layout = QHBoxLayout()
+        self.viewLayout.addLayout(top_layout)
+
+        top_left_layout = QVBoxLayout()
+        top_layout.addLayout(top_left_layout)
+
+        top_left_layout.addWidget(TitleLabel("登录"))
+
+        info_label = BodyLabel("请使用微信扫码登录")
+        info_label.setStyleSheet("font-size: 20px;")
+        top_left_layout.addWidget(info_label)
+
+        close_button = ToolButton(FIF.CLOSE)
+        close_button.clicked.connect(self.close)
+        top_layout.addWidget(close_button, alignment=Qt.AlignmentFlag.AlignRight)
+
+
+        content_layout = QVBoxLayout()
+        # content_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
+        self.viewLayout.addLayout(content_layout)
+
+
+        
+
+        self.yesButton.hide()
+        self.cancelButton.hide()
+
+
+        self.widget.setFixedSize(400, 400)
+
+        self.buttonGroup.deleteLater()
+        self.buttonLayout.deleteLater()
+
+
+
+class AccountPage(QFrame):
+    def __init__(self, config, logger, parent=None):
+        super().__init__(parent)
+
+        self.config = config
+        self.logger = logger
+
+        self.initUI()
+
+        self.login_window = LoginWindow(config, logger, self)
+        self.login_window.hide()
+    
+    def initUI(self):
+
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.setLayout(layout)
+
+        layout.addWidget(LargeTitleLabel("账户"))
+
+        layout.addWidget(self.initCard())
+
+        self.token_label = BodyLabel("Token:未登录")
+        layout.addWidget(self.token_label)
+
+        layout.addWidget(TitleLabel("为什么需要登录？"))
+        layout.addWidget(BodyLabel("北京题库中的一个api，需要获取登录后的token，否则无法使用."))
+        layout.addWidget(BodyLabel("api为北京题库获取优选信息的接口，登录后才可获取下载地址(若不使用优选功能或可以自行下载，则可不进行登录)."))
+        layout.addWidget(BodyLabel("登录后token保存在本地，注意不要泄露你的token"))
+
+        
+        
+
+    def login(self):
+        self.login_window.show()
+
+
+    def changeToken(self):
+        logined = self.config.get("account.login", False)
+        token = self.config.get("account.token", "")
+
+        if logined:
+            self.token_label.setText(f"Token:{token}")
+        else:
+            self.token_label.setText("Token:未登录")
+    
+    def initCard(self):
+        card = CardWidget()
+
+        logined = self.config.get("account.login", False)
+        name = self.config.get("account.name", "未登录")
+        phone = self.config.get("account.phone", None)
+        is_vip = self.config.get("account.is_vip", False)
+
+
+        if logined:
+            avator = QIcon(":/data/avator.png")
+
+            if is_vip:
+                vip_str = "会员"
+            else:
+                vip_str = "非会员"
+
+        else:
+            avator = FIF.PEOPLE.icon()
+            vip_str = "未登录"
+
+        if phone is None:
+            phone_str = "未绑定"
+        else:
+            phone_str = phone
+
+
+        card = CardWidget()
+
+        layout = QHBoxLayout()
+        card.setLayout(layout)
+
+        left_layout = QHBoxLayout()
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        layout.addLayout(left_layout)
+
+        icon = QLabel()
+        icon.setPixmap(avator.pixmap(32, 32))
+        left_layout.addWidget(icon)
+
+        info_layout = QVBoxLayout()
+        info_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        left_layout.addLayout(info_layout)
+
+        info_layout.addWidget(TitleLabel(name), alignment=Qt.AlignmentFlag.AlignLeft)
+        info_layout.addWidget(BodyLabel(f"{phone_str} {vip_str}"), alignment=Qt.AlignmentFlag.AlignLeft)
+
+        right_layout = QVBoxLayout()
+        right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
+        layout.addLayout(right_layout)
+
+        self.logout_button = PrimaryPushButton("退出登录")
+        self.logout_button.setVisible(False)
+        right_layout.addWidget(self.logout_button)
+
+        self.login_button = PrimaryPushButton("登录")
+        self.login_button.clicked.connect(self.login)
+        self.login_button.setVisible(False)
+        right_layout.addWidget(self.login_button)
+
+        self.changeButton()
+
+        return card
+
+    def changeButton(self):
+        logined = self.config.get("account.login", False)
+
+        if logined:
+            self.login_button.hide()
+            self.logout_button.show()
+        else:
+            self.login_button.show()
+            self.logout_button.hide()
+
+    
+    
+    
 class ProgressWindow(MessageBoxBase):
     def __init__(self, content: str, parent=None):
         super().__init__(parent)
@@ -452,6 +614,7 @@ class ProgressWindow(MessageBoxBase):
         self.eta_label.setText(f"{format_time(eta)} {progress}%") 
 
         self.progress.setValue(progress)
+
 
 class LoadingWindow(MessageBoxBase):
     def __init__(self, title:str, content:str, parent=None):
@@ -503,6 +666,9 @@ class MainWindow(FluentWindow):
         self.settingInterface = logical.SettingsPage(self)
         self.settingInterface.setObjectName("settingInterface")
 
+        self.avatorInterface = logical.AccountPage(self.config, self.logger, self)
+        self.avatorInterface.setObjectName("avatorInterface")
+
         self.initNavigation()
          
     def initNavigation(self):
@@ -513,25 +679,20 @@ class MainWindow(FluentWindow):
         self.addSubInterface(self.localInterface, FIF.FOLDER, "本地")
         self.addSubInterface(self.collectsInterface, FIF.HEART, "收藏")
 
+        self.initAvator()
+
 
         self.addSubInterface(self.settingInterface, FIF.SETTING, "设置", NavigationItemPosition.BOTTOM)
 
+    def initAvator(self):
 
+        logined = self.config.get("account.login", False)
+        name = self.config.get("account.name", "未登录")
 
-# if __name__ == "__main__":
-#     app = QApplication([])
-    
-#     w = SearchPage()
+        if logined:
+            avator = QIcon(":/data/avator.png")
+        else:
+            avator = FIF.PEOPLE
 
-#     for i in range(10):
-#         w.content_data.content_layout.addWidget(ItemCard(
-#         0,
-#         "测试标题",
-#         1145, 1919,
-#         "测试作者", "1919-05-04",
-#         False, True,
-#         "...", ""
-#     ))
-#     w.show()
+        self.addSubInterface(self.avatorInterface, avator, name, NavigationItemPosition.BOTTOM)
 
-#     app.exec_()
