@@ -39,7 +39,7 @@ class ItemCard(CardWidget):
         self._parent = parent
         self.config = config
                         
-        super().__init__(parent) # * parent=SearchPage
+        super().__init__(parent)
         
         h_layout = QHBoxLayout()
         self.setLayout(h_layout)
@@ -114,10 +114,10 @@ class ItemCard(CardWidget):
                 parent=self._parent,
                 duration=5000
             )
-        elif os.path.exists(f"cache/files/{self.title}.pdf"):
-            os.system(f"start cache/files/{self.title}.pdf")
+        elif os.path.exists(f"data/files/{self.title}.pdf"):
+            os.system(f"start data/files/{self.title}.pdf")
         else:
-            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}", f"cache/files/{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
+            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}", f"data/files/{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
             self.download_pdf_button.setText("查看PDF文件")
 
     def downloadWord(self):
@@ -131,10 +131,10 @@ class ItemCard(CardWidget):
                 parent=self._parent,
                 duration=5000
             )
-        elif os.path.exists(f"cache/files/{self.title}.docx"):
-            os.system(f"start cache/files/{self.title}.docx")
+        elif os.path.exists(f"data/files/{self.title}.docx"):
+            os.system(f"start data/files/{self.title}.docx")
         else:
-            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.word_file}", f"cache/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
+            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.word_file}", f"data/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
             self.download_word_button.setText("查看Word文件")
 
     def viewWeb(self):
@@ -144,12 +144,12 @@ class ItemCard(CardWidget):
         os.system(f"start https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}")
 
     def refreshButton(self):
-        if os.path.exists(f"cache/files/{self.title}.pdf"):
+        if os.path.exists(f"data/files/{self.title}.pdf"):
             self.download_pdf_button.setText("查看PDF文件")
         else:
             self.download_pdf_button.setText("下载PDF文件")
         
-        if os.path.exists(f"cache/files/{self.title}.docx"):
+        if os.path.exists(f"data/files/{self.title}.docx"):
             self.download_word_button.setText("查看Word文件")
         else:
             self.download_word_button.setText("下载Word文件")
@@ -222,3 +222,36 @@ class SettingCard(CardWidget):
         
 
         self.setLayout(h_layout)
+
+
+class PreferredCard(CardWidget):
+    def __init__(self,
+                 id: int,
+                 title: str,
+                 view: int,
+                 download: int,
+                 upload_time: str,
+                 price: float,
+                 subject: str,
+                 year: int,
+                 grade: str,
+                 type: str,
+                 is_hot: bool
+                 ):
+        
+        self.config = {
+            "id": id,
+            "title": title,
+            "view": view,
+            "download": download,
+            "upload_time": upload_time,
+            "price": price,
+            "subject": subject,
+            "year": year,
+            "grade": grade,
+            "type": type,
+            "is_hot": is_hot
+        }
+
+        
+
