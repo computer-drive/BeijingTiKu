@@ -1,0 +1,3 @@
+1. POST https://www.jingshibang.com/api/getwxpic 获取url、WeChatFlag
+2. 重复 GET https://www.jingshibang.com/api/wechat/pcauth2?wechat_flag={WeChatFlag} 获取WeChatToken
+3. token作为cookie的
