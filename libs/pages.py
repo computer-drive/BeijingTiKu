@@ -439,14 +439,19 @@ class LoginWindow(MessageBoxBase):
         # content_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
         self.viewLayout.addLayout(content_layout)
 
+        self.loading = IndeterminateProgressRing()
+        content_layout.addWidget(self.loading)
 
-        
+        self.qrcode_label = QLabel()
+        self.qrcode_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        content_layout.addWidget(self.qrcode_label)
+
 
         self.yesButton.hide()
         self.cancelButton.hide()
 
 
-        self.widget.setFixedSize(400, 400)
+        self.widget.setMinimumSize(400, 400)
 
         self.buttonGroup.deleteLater()
         self.buttonLayout.deleteLater()
@@ -476,6 +481,8 @@ class AccountPage(QFrame):
         layout.addWidget(self.initCard())
 
         self.token_label = BodyLabel("Token:未登录")
+        self.changeToken()
+        self.token_label.setMaximumWidth(400)
         layout.addWidget(self.token_label)
 
         layout.addWidget(TitleLabel("为什么需要登录？"))
@@ -494,6 +501,7 @@ class AccountPage(QFrame):
         logined = self.config.get("account.login", False)
         token = self.config.get("account.token", "")
 
+        # print(logined)
         if logined:
             self.token_label.setText(f"Token:{token}")
         else:
@@ -509,7 +517,7 @@ class AccountPage(QFrame):
 
 
         if logined:
-            avator = QIcon(":/data/avator.png")
+            avator = QIcon(":/data/avator.jpg")
 
             if is_vip:
                 vip_str = "会员"
@@ -681,7 +689,6 @@ class MainWindow(FluentWindow):
 
         self.initAvator()
 
-
         self.addSubInterface(self.settingInterface, FIF.SETTING, "设置", NavigationItemPosition.BOTTOM)
 
     def initAvator(self):
@@ -690,7 +697,7 @@ class MainWindow(FluentWindow):
         name = self.config.get("account.name", "未登录")
 
         if logined:
-            avator = QIcon(":/data/avator.png")
+            avator = QIcon("data/avator.jpg")
         else:
             avator = FIF.PEOPLE
 
