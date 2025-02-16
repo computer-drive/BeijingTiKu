@@ -6,8 +6,8 @@ from libs.worker import (SearchWorker, GetCategoryWorker,
                           GetPointsWorker, GetPapersListWorker, LoginWorker)
 from qfluentwidgets import InfoBar, MessageBox
 from PyQt5.QtWidgets import  QTreeWidgetItem
-from PyQt5.QtGui import QIcon, QPixmap, QImage
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import  QPixmap, QImage
+from PyQt5.QtCore import Qt, pyqtSignal
 from datetime import datetime
 
 def _layout_clear(layout):
@@ -466,12 +466,33 @@ class AccountPage(AccountPage):
     def __init__(self, config, logger, parent=None):
         super().__init__(config, logger, parent)
 
+
         self.login_worker = LoginWorker(logger)
+
         self.login_worker.got_qrcode.connect(self.workerGotQrcode)
         self.login_worker.logined.connect(self.workerLogined)
         self.login_worker.error.connect(self.workerError)
+        self.login_worker.got_avator.connect(self.workerGotAvator)
 
         self.login_window.showEvent = self.workerStart
+        self.login_window.closeEvent = self.windowClose
+
+        self.logout_button.clicked.connect(self.logout)
+
+    
+    def windowClose(self, event):
+        self.login_worker.__stop__ = True
+
+    def logout(self):
+        self.config.set("account.login", False)
+        self.config.set("account.name", "")
+        self.config.set("account.phone", "")
+        self.config.set("account.is_vip", False)
+        self.config.set("account.token", "")
+
+        self.changeButton()
+        self.changeText()
+        self.changeToken()
 
     def workerStart(self, event):
         self.login_worker.start()
@@ -479,7 +500,10 @@ class AccountPage(AccountPage):
     def workerGotQrcode(self, data):
         # self.login_window.qrcode_label.setFixedSize(128, 128)
         self.login_window.loading.hide()
-        self.login_window.qrcode_label.setPixmap(QPixmap.fromImage(QImage().fromData(data)) )
+
+        image = QImage().fromData(data)
+        image = image.scaled(256, 256,)
+        self.login_window.qrcode_label.setPixmap(QPixmap.fromImage(image))
 
     def workerLogined(self, data):
         self.config.set("account.login", True)
@@ -491,19 +515,30 @@ class AccountPage(AccountPage):
     def workerError(self, data):
         match data[0]:
             case "getQrcode":
-                window = MessageBox("登录失败", f"获取二维码失败：{data[1]}", self)
+                window = MessageBox("登录失败", f"获取二维码失败：\n{data[1]}", self)
                 window.cancelButton.hide()
                 window.exec()
             case "login":
-                window = MessageBox("登录失败", f"登录失败：{data[1]}", self)
+                window = MessageBox("登录失败", f"登录失败：\n{data[1]}", self)
                 window.cancelButton.hide()
                 window.exec()
             case "avator":
-                window = MessageBox("登录失败", f"获取头像失败：{data[1]}", self)
+                window = MessageBox("登录失败", f"获取头像失败：\n{data[1]}", self)
                 window.cancelButton.hide()
                 window.exec()
             case _:
                 pass
+
+        
+        self.login_window.close()
+
+    def workerGotAvator(self, data):
+        
+        self.login_window.close()
+
+        self.changeButton()
+        self.changeText()
+        self.changeToken()
 
                 
 
