@@ -227,7 +227,9 @@ class GetPapersListWorker(RequestsWorker):
             "chapter_name": "",
             "point_name": "",
             "assembly_grade": "",
-            "assembly_type": ""
+            "assembly_type": "",
+            "catid": "",
+            "type": 0
         }
 
     def setType(self, type):
@@ -258,8 +260,22 @@ class GetPapersListWorker(RequestsWorker):
         self.args["assembly_type"] = type
         return self
 
+    def setCatid(self, moudle, chapter, point):
+        
+        if point is not None:
+            self.args["catid"] = point
+        elif chapter is not None:
+            self.args["catid"] = chapter
+        else:
+            self.args["catid"] = moudle
+        # print(self.args["catid"])
+
+        return self
+
     def build(self):
         return self.args
+    
+
     
     def run(self):
         status, data = self.__run__()
