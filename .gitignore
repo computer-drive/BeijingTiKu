@@ -1,6 +1,9 @@
 logs/
-cache/
+data/
 *.log
 *.pyc
 *.pyd
+*.pdf
+*.docx
+
 config.json
