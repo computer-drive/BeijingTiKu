@@ -1,12 +1,12 @@
 from libs.pages import (SearchPage, Preferred, LocalPage,
                          CollectsPage, SettingsPage, LoadingWindow,
-                         AccountPage)
+                         AccountPage,)
 from libs.widgets import ItemCard
 from libs.worker import (SearchWorker, GetCategoryWorker,
-                          GetPointsWorker, GetPapersListWorker)
-from qfluentwidgets import InfoBar
+                          GetPointsWorker, GetPapersListWorker, LoginWorker)
+from qfluentwidgets import InfoBar, MessageBox
 from PyQt5.QtWidgets import  QTreeWidgetItem
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap, QImage
 from PyQt5.QtCore import Qt
 from datetime import datetime
 
@@ -462,10 +462,55 @@ class Preferred(Preferred):
 
         self.search_worker.start()
 
+class AccountPage(AccountPage):
+    def __init__(self, config, logger, parent=None):
+        super().__init__(config, logger, parent)
 
+        self.login_worker = LoginWorker(logger)
+        self.login_worker.got_qrcode.connect(self.workerGotQrcode)
+        self.login_worker.logined.connect(self.workerLogined)
+        self.login_worker.error.connect(self.workerError)
 
+        self.login_window.showEvent = self.workerStart
+
+    def workerStart(self, event):
+        self.login_worker.start()
+
+    def workerGotQrcode(self, data):
+        # self.login_window.qrcode_label.setFixedSize(128, 128)
+        self.login_window.loading.hide()
+        self.login_window.qrcode_label.setPixmap(QPixmap.fromImage(QImage().fromData(data)) )
+
+    def workerLogined(self, data):
+        self.config.set("account.login", True)
+        self.config.set("account.token", data[0])
+        self.config.set("account.name", data[1])
+        self.config.set("account.phone", data[2])
+        self.config.set("account.is_vip", data[3])
     
-        
+    def workerError(self, data):
+        match data[0]:
+            case "getQrcode":
+                window = MessageBox("登录失败", f"获取二维码失败：{data[1]}", self)
+                window.cancelButton.hide()
+                window.exec()
+            case "login":
+                window = MessageBox("登录失败", f"登录失败：{data[1]}", self)
+                window.cancelButton.hide()
+                window.exec()
+            case "avator":
+                window = MessageBox("登录失败", f"获取头像失败：{data[1]}", self)
+                window.cancelButton.hide()
+                window.exec()
+            case _:
+                pass
+
+                
+
+   
+
+
+
         
         
 
