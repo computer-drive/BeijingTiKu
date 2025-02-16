@@ -436,16 +436,18 @@ class LoginWindow(MessageBoxBase):
 
 
         content_layout = QVBoxLayout()
-        # content_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
         self.viewLayout.addLayout(content_layout)
 
+        content_layout.addStretch()
+
         self.loading = IndeterminateProgressRing()
-        content_layout.addWidget(self.loading)
+        self.loading.setFixedSize(45, 45)
+        content_layout.addWidget(self.loading, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.qrcode_label = QLabel()
-        self.qrcode_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        content_layout.addWidget(self.qrcode_label)
+        content_layout.addWidget(self.qrcode_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
+        content_layout.addStretch()
 
         self.yesButton.hide()
         self.cancelButton.hide()
@@ -455,6 +457,14 @@ class LoginWindow(MessageBoxBase):
 
         self.buttonGroup.deleteLater()
         self.buttonLayout.deleteLater()
+
+        self.showEvent = self.whenShow
+
+    def whenShow(self, event):
+
+        self.loading.show()
+
+        self.qrcode_label.clear()
 
 
 
@@ -469,7 +479,8 @@ class AccountPage(QFrame):
 
         self.login_window = LoginWindow(config, logger, self)
         self.login_window.hide()
-    
+
+
     def initUI(self):
 
         layout = QVBoxLayout()
@@ -510,32 +521,6 @@ class AccountPage(QFrame):
     def initCard(self):
         card = CardWidget()
 
-        logined = self.config.get("account.login", False)
-        name = self.config.get("account.name", "未登录")
-        phone = self.config.get("account.phone", None)
-        is_vip = self.config.get("account.is_vip", False)
-
-
-        if logined:
-            avator = QIcon(":/data/avator.jpg")
-
-            if is_vip:
-                vip_str = "会员"
-            else:
-                vip_str = "非会员"
-
-        else:
-            avator = FIF.PEOPLE.icon()
-            vip_str = "未登录"
-
-        if phone is None:
-            phone_str = "未绑定"
-        else:
-            phone_str = phone
-
-
-        card = CardWidget()
-
         layout = QHBoxLayout()
         card.setLayout(layout)
 
@@ -543,16 +528,18 @@ class AccountPage(QFrame):
         left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout.addLayout(left_layout)
 
-        icon = QLabel()
-        icon.setPixmap(avator.pixmap(32, 32))
-        left_layout.addWidget(icon)
+        self.icon = QLabel()
+        left_layout.addWidget(self.icon)
 
         info_layout = QVBoxLayout()
         info_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         left_layout.addLayout(info_layout)
 
-        info_layout.addWidget(TitleLabel(name), alignment=Qt.AlignmentFlag.AlignLeft)
-        info_layout.addWidget(BodyLabel(f"{phone_str} {vip_str}"), alignment=Qt.AlignmentFlag.AlignLeft)
+        self.name_label = TitleLabel()
+        info_layout.addWidget(self.name_label, alignment=Qt.AlignmentFlag.AlignLeft)
+        
+        self.phone_label = BodyLabel()
+        info_layout.addWidget(self.phone_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
         right_layout = QVBoxLayout()
         right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -569,6 +556,8 @@ class AccountPage(QFrame):
 
         self.changeButton()
 
+        self.changeText()
+
         return card
 
     def changeButton(self):
@@ -580,6 +569,36 @@ class AccountPage(QFrame):
         else:
             self.login_button.show()
             self.logout_button.hide()
+
+    def changeText(self):
+        name = self.config.get("account.name", "未登录")
+        logined = self.config.get("account.login", False)
+        is_vip = self.config.get("account.is_vip", False)
+        phone = self.config.get("account.phone", "")
+
+        if logined:
+            avator = QIcon("data/avator.jpg")
+
+            if is_vip:
+                vip_str = "会员"
+            else:
+                vip_str = "非会员"
+
+        else:
+            avator = FIF.PEOPLE.icon()
+            vip_str = ""
+
+        if phone is None:
+            phone_str = "未绑定"
+        else:
+            phone_str = phone
+
+        self.icon.setPixmap(avator.pixmap(32, 32))
+
+        self.name_label.setText(name)
+        self.phone_label.setText(f"{phone_str} {vip_str}")
+
+        
 
     
     
