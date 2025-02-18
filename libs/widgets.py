@@ -1,7 +1,8 @@
 import os
-from libs.worker import download_file
+from libs.worker import download_file, GetPreferredInfoWorker
 from qfluentwidgets import (CardWidget, TitleLabel, BodyLabel, InfoBadge, InfoBar, IconWidget,
-                             PushButton, TogglePushButton, InfoBarPosition, CaptionLabel
+                             PushButton, TogglePushButton, InfoBarPosition, CaptionLabel,
+                             IndeterminateProgressRing
                             )
 from qfluentwidgets import FluentIcon as FIF
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QSizePolicy
@@ -236,22 +237,258 @@ class PreferredCard(CardWidget):
                  year: int,
                  grade: str,
                  type: str,
-                 is_hot: bool
+                 is_hot: bool,
+                 config,
+                 logger, 
+                 parent=None
                  ):
         
-        self.config = {
-            "id": id,
-            "title": title,
-            "view": view,
-            "download": download,
-            "upload_time": upload_time,
-            "price": price,
-            "subject": subject,
-            "year": year,
-            "grade": grade,
-            "type": type,
-            "is_hot": is_hot
-        }
+        super().__init__(parent)
+        
+        self.id = id
+        self.title = title 
+        self.view = view 
+        self.download = download 
+        self.upload_time = upload_time 
+        self.price = price 
+        self.subject = subject 
+        self.year = year 
+        self.grade = grade 
+        self.type = type 
+        self.is_hot = is_hot 
+
+        self.pdf_file = ""
+        self.word_file = ""
+
+        self.config = config
+        self.logger = logger
+
+        self._parent= parent
+
+        self.initUi()
+        self.initWorker()
+        
+
+    def workerFinished(self, data):
+        self.logger.info(f"Got preferred info(id:{self.id}) success.")
+
+        if data[0]:
+            
+            if data[1]["storeInfo"]["pdf_paper"] == "":
+                if data[1]["storeInfo"]["pdf_answer"] == "":
+                    self.download_pdf_button.setEnabled(False)
+                    self.view_pdf_button.setEnabled(False)
+                else:
+                    self.pdf_file = data[1]["storeInfo"]["pdf_answer"]
+            else:
+                self.pdf_file = data[1]["storeInfo"]["pdf_paper"]
+
+
+            if data[1]["storeInfo"]["word_paper"] == "":    
+                if data[1]["storeInfo"]["word_answer"] == "":
+                    self.download_word_button.setEnabled(False)
+                else:
+                    self.word_file = data[1]["storeInfo"]["word_answer"]
+            else:
+                self.word_file = data[1]["storeInfo"]["word_paper"]
+
+            self.showButton()
+            
+        else:
+            self.showError("出现错误")
+
+    def initWorker(self):
+        self.worker = GetPreferredInfoWorker(self.id, self.config, self.logger)
+
+        self.worker.finished.connect(self.workerFinished)
+
+        self.worker.start()
+
+    def initUi(self):
+        h_layout = QHBoxLayout()
+        self.setLayout(h_layout)
+
+        left_layout = QVBoxLayout()
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        h_layout.addLayout(left_layout)
+
+        title = TitleLabel(self.title)
+        title.setStyleSheet("font-size: 16px;")
+        left_layout.addWidget(title)
+
+        left_layout.addWidget(BodyLabel(f"{self.grade} {self.subject} {self.year} {self.type}"))
+        left_layout.addWidget(BodyLabel(f"下载量：{self.download} 浏览量：{self.view}"))
+        left_layout.addWidget(BodyLabel(f"上传时间：{self.upload_time}"))
+
+        price_label = BodyLabel(self.updatePrice())
+        price_label.setStyleSheet("font-size: 16px; color: #fe690e;")
+        
+        left_layout.addWidget(price_label)
+
+        hot_label = InfoBadge.custom("热门", "#FE143B", "#FE143B")
+        
+
+        info_layout = QHBoxLayout()
+        info_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        if self.is_hot:
+            info_layout.addWidget(hot_label, alignment=Qt.AlignmentFlag.AlignLeft)
+        left_layout.addLayout(info_layout)
+
+
+        right_layout = QVBoxLayout()
+        right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
+        h_layout.addLayout(right_layout)
+
+        
+        self.download_pdf_button = PushButton(FIF.DOWNLOAD, "下载PDF文件")
+        self.download_pdf_button.clicked.connect(self.downloadPdf)
+        self.download_pdf_button.hide()
+        right_layout.addWidget(self.download_pdf_button)
+
+        self.download_word_button = PushButton(FIF.DOWNLOAD, "下载Word文件")
+        self.download_word_button.clicked.connect(self.downloadWord)
+        self.download_word_button.hide()
+        right_layout.addWidget(self.download_word_button)
+
+        view_layout = QHBoxLayout()
+        right_layout.addLayout(view_layout)
+
+        self.view_web_button = PushButton(FIF.CLOUD, "查看网页")
+        self.view_web_button.clicked.connect(self.viewWeb)
+        self.view_web_button.hide()
+        view_layout.addWidget(self.view_web_button)
+
+        self.view_pdf_button = PushButton(FIF.DOCUMENT, "预览网页")
+        self.view_pdf_button.clicked.connect(self.viewPdf)
+        self.view_pdf_button.hide()
+        view_layout.addWidget(self.view_pdf_button)
+
+        self.collect_button = TogglePushButton(FIF.HEART, "收藏")
+        self.collect_button.clicked.connect(self.collectButton)
+        self.collect_button.hide()
+        right_layout.addWidget(self.collect_button)
+
+        self.loading = IndeterminateProgressRing()
+        self.loading.setFixedSize(45, 45)
+        right_layout.addWidget(self.loading)
+
+        self.error_label = BodyLabel("(⊙x⊙;)")
+        self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.error_label.setStyleSheet("font-size: 40px;")
+        self.error_label.hide()
+        right_layout.addWidget(self.error_label)
+
+        self.error_info_label = BodyLabel("出错了，请重试")
+        self.error_info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.error_info_label.setStyleSheet("font-size: 20px;")
+        self.error_info_label.hide()
+        right_layout.addWidget(self.error_info_label)
+
+        self.refreshButton()
+    
+    def showButton(self):
+        self.download_pdf_button.show()
+        self.download_word_button.show()
+        self.view_web_button.show()
+        self.view_pdf_button.show()
+        self.collect_button.show()
+        self.loading.hide()
+
+    def showError(self, info):
+
+        self.download_pdf_button.hide()
+        self.download_word_button.hide()
+        self.view_web_button.hide()
+        self.view_pdf_button.hide()
+        self.collect_button.hide()
+        self.loading.hide()
+
+        self.error_label.show()
+        self.error_info_label.show()
+
+        self.error_info_label.setText(info)
+
+    def updatePrice(self):
+        if self.price == 0:
+            return "免费"
+        else:
+            return f"￥{self.price}"
+        
+    def downloadPdf(self):
+        # print(self._parent)
+        if self.pdf_file == "":
+            InfoBar.error(
+                "无法下载PDF文件",
+                "该试卷无PDF格式的文件",
+                orient=Qt.Vertical,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                parent=self._parent,
+                duration=5000
+            )
+        elif os.path.exists(f"data/files/{self.title}.pdf"):
+            os.system(f'"data/files/{self.title}.pdf"')
+        else:
+            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}", f"data/files/{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
+            self.download_pdf_button.setText("查看PDF文件")
+
+    def downloadWord(self):
+        if self.word_file == "":
+            InfoBar.error(
+                "无法下载Word文件",
+                "该试卷无Word格式的文件",
+                orient=Qt.Vertical,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                parent=self._parent,
+                duration=5000
+            )
+        elif os.path.exists(f"data/files/{self.title}.docx"):
+            os.system(f'"data/files/{self.title}.docx')
+        else:
+            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.word_file}", f"data/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
+            self.download_word_button.setText("查看Word文件")
+
+    def viewWeb(self):
+        os.system(f'start https://www.jingshibang.com/home/detailPaper/?id={self.id}&title={self.title}')
+    
+    def viewPdf(self):
+        os.system(f"start https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}")
+
+    def refreshButton(self):
+        if os.path.exists(f"data/files/{self.title}.pdf"):
+            self.download_pdf_button.setText("查看PDF文件")
+        else:
+            self.download_pdf_button.setText("下载PDF文件")
+        
+        if os.path.exists(f"data/files/{self.title}.docx"):
+            self.download_word_button.setText("查看Word文件")
+        else:
+            self.download_word_button.setText("下载Word文件")
+
+        collects = self.config.get("collects", [])
+        item = [self.id, self.title]
+        if item in collects:
+            self.collect_button.toggle()
+            self.collect_button.setText("取消收藏")
+        else:
+            self.collect_button.setText("收藏")
+
+    def collectButton(self):
+        collects = self.config.get("collects", [])
+
+        item = [self.id, self.title]
+        if item in collects:
+            collects.remove(item)
+            self.collect_button.setText("收藏")
+        else:
+            collects.append(item)
+            self.collect_button.setText("取消收藏")
+
+        self.config.set("collects", collects)
+
 
         
 
