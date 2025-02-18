@@ -1,14 +1,15 @@
 from libs.pages import (SearchPage, Preferred, LocalPage,
                          CollectsPage, SettingsPage, LoadingWindow,
                          AccountPage,)
-from libs.widgets import ItemCard
+from libs.widgets import ItemCard, PreferredCard
 from libs.worker import (SearchWorker, GetCategoryWorker,
                           GetPointsWorker, GetPapersListWorker, LoginWorker)
-from qfluentwidgets import InfoBar, MessageBox
+from qfluentwidgets import InfoBar, MessageBox, BodyLabel
 from PyQt5.QtWidgets import  QTreeWidgetItem
 from PyQt5.QtGui import  QPixmap, QImage
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt
 from datetime import datetime
+import os 
 
 def _layout_clear(layout):
     while layout.count():
@@ -207,12 +208,43 @@ class Preferred(Preferred):
 
         self.all_time_button.clicked.connect(lambda: self.time_input.setValue(0))
 
+        self.page_back_button.clicked.connect(self.pageBack)
+        self.page_forward_button.clicked.connect(self.pageNext)
+
         self.showEvent = self.getCategory
 
         self.loading = LoadingWindow("正在加载", "[DefaultText]", self)
 
         
+    def pageBack(self):
+        if self.__started_search__:
+            return 
+        
+        if self.page > 1:
+            self.page -= 1
 
+        self.pageChange()
+
+        self.search()
+        
+    def pageNext(self):
+        if self.__started_search__:
+            return 
+         
+        if self.page < self.max_page:
+            self.page += 1
+
+        self.pageChange()
+
+        self.search()
+    
+    def pageChange(self):
+        self.page_back_button.setEnabled(self.page > 1)
+        self.page_forward_button.setEnabled(self.page < self.max_page)
+
+        self.page_label.setText(f"{self.page}/{self.max_page} 共{self.max_page * 10}条")
+
+        
 
     def changeAssembly(self):
         if self.type_input.currentText() == "汇编":
@@ -243,9 +275,10 @@ class Preferred(Preferred):
             return
         
         def finished(data):
-            self.logger.info("Get category finished.")
+            self.logger.info("Got category.")
 
             self.category = data[1]["data"]["category"]
+        
 
             self.showCateGory()
 
@@ -254,8 +287,7 @@ class Preferred(Preferred):
 
         self.logger.info("Getting category.")
         
-        
-
+    
         self.loading.worker = GetCategoryWorker()
         self.loading.worker.finished.connect(finished)
 
@@ -265,23 +297,37 @@ class Preferred(Preferred):
 
     def changeItem(self, item, column):
 
-        # print(item.id, item.name)
         if item.typ == "moudle":
             self.currentMoudle = (item.id, item.name)
             self.currentChapter = (None, '')
+            self.currentPoint = (None, '')
 
         elif item.typ == "chapter":
             self.currentChapter = (item.id, item.name)
             self.currentPoint = (None, '')
+
         elif item.typ == "point":
             self.currentPoint = (item.id, item.name)
 
+        items = [
+            self.currentMoudle[1],
+            self.currentChapter[1],
+            self.currentPoint[1]
+        ]
+        text = ""
+        for item in items:
+
+            if item != "":
+                text += item + " > "
+        text = text[:-3]
+        self.path_label.setText(text)
+
+        self.page = 1
+        self.max_page = 1
+        
         
         if not self.__started_search__:
             self.search()
-
-
-    
 
     def showCateGory(self):
         # print(self.loading.isVisible())
@@ -302,7 +348,14 @@ class Preferred(Preferred):
                 break
         
         if subject_cate is None:
-            InfoBar.error("加载错误",f"未找到学科 {currentSubject}")
+
+            self.logger.error(f"showCateGory error: subject '{currentSubject}' not found.")
+
+            InfoBar.error("加载错误",f"未找到学科 {currentSubject}", parent=self)
+
+            # self.subject_input.setCurrentIndex(0)
+
+            self.loading.hide()
             return
 
         # print(json.dumps(subject_cate))
@@ -312,8 +365,16 @@ class Preferred(Preferred):
                 break
         
         if state_cate is None:
-            InfoBar.error("加载错误",f"未找到学科 {currentSubject} 的阶段 {currentState}")
+            self.logger.error(f"showCateGory error: subject '{currentSubject}' state '{currentState}' not found.")
+
+            InfoBar.error("加载错误",f"未找到学科 {currentSubject} 的阶段 {currentState}", parent=self)
+
+            # self.state_input.setCurrentIndex(0)
+
+            self.loading.hide()
             return
+        
+        self.logger.info(f"Getting {currentState}: {currentSubject} categories.")
         
         for moudle in state_cate["items"]:
             moudle_item = QTreeWidgetItem([moudle["cate_name"]])
@@ -344,12 +405,15 @@ class Preferred(Preferred):
                     self.workers[message[2]]["finished"] = True
 
                     all = True
+                    
                     for key in self.workers:
+
                         if not self.workers[key]["finished"]:
                             all = False
                             break
 
                     if all:
+                        self.logger.info(f"Get {len(moudle["items"])} points for chapter all finished.")
                         self.loading.close()
 
              
@@ -363,7 +427,7 @@ class Preferred(Preferred):
                 worker.finished.connect(finished)
                 worker.start()
             
-            self.logger.info(f"Getting {len(moudle["items"])} chapters points from {moudle["cate_name"]}")
+            self.logger.info(f"Getting {len(moudle["items"])}points for chapter")
 
 
                 # for point in chapter["items"]:
@@ -414,13 +478,19 @@ class Preferred(Preferred):
             _layout_clear(self.content_data_layout)
             self.content_data_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-            self.logger.info("Search finished")
             self.__started_search__ = False  
 
 
             if data[0]:
             
                 count = data[1]["data"]["count"]
+
+                if count % 10 == 0:
+                    self.max_page = count // 10
+                else:
+                    self.max_page = count // 10 + 1
+                
+                self.pageChange()
 
                 if len(data[1]["data"]["list"]) == 0:
                     self.content_data_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -433,32 +503,35 @@ class Preferred(Preferred):
                     else:
                         is_hot = False
 
-                    item_widget = ItemCard(
+                    item_widget = PreferredCard(
                         item["id"],
                         item["store_name"],
                         item["browse"],
                         item["upload_num"],
-                        "菁师帮",
                         item["add_time"],
-                        is_hot,
-                        False,
-                        "",
-                        "",
-                        self.config
+                        float(item["price"]),
+                        item["paper_subject"],
+                        int(item["store_year"]),
+                        item["paper_grade"],
+                        item["paper_type"],
+                        True if item["is_hot"] == 1 else False,
+                        self.config,
+                        self.logger,
+                        self
                     )
                     self.content_data_layout.addWidget(item_widget)
 
         self.search_worker = GetPapersListWorker(self.page,
                                                 subject,
-                                                grade).setType(store_type)
-        
+                                                grade,
+                                                logger=self.logger
+                                                ).setType(store_type)
         self.search_worker.setType(store_type).setYear(year).setModule(*self.currentMoudle)
         self.search_worker.setChapter(*self.currentChapter).setPoint(*self.currentPoint)
         self.search_worker.setAssembly(assembly_grade, assembly_type).setCatid(self.currentMoudle[0], self.currentChapter[0], self.currentPoint[0])
         self.search_worker.finished.connect(finished)
 
         self.__started_search__ = True
-        self.logger.info("Start Searching.")
 
         self.search_worker.start()
 
