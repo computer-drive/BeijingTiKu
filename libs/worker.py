@@ -11,10 +11,11 @@ download_count = 0
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
-def get_data(url, args=None, user_agent=USER_AGENT, timeout=10, data_type:Literal["json", "text", "bytes", "response"]="json"):
-    headers = {
-        "User-Agent": user_agent
-    }
+HEADERS = {
+    "User-Agent": USER_AGENT
+}
+
+def get_data(url, args=None, headers=HEADERS, timeout=10, data_type:Literal["json", "text", "bytes", "response"]="json"):
     
     try:
         response = requests.get(url, params=args, headers=headers, timeout=timeout)
@@ -35,10 +36,8 @@ def get_data(url, args=None, user_agent=USER_AGENT, timeout=10, data_type:Litera
     except Exception as e:
         return (False, e)
     
-def post_data(url, data=None, user_agent=USER_AGENT, timeout=10, data_type:Literal["json", "text", "bytes", "response"]="json"):
-    headers = {
-        "User-Agent": user_agent
-    }
+def post_data(url, data=None, headers=HEADERS, timeout=10, data_type:Literal["json", "text", "bytes", "response"]="json"):
+
 
     try:
         response = requests.post(url, data=data, headers=headers, timeout=timeout)
@@ -71,16 +70,16 @@ def get_total(args):
 class RequestsWorker(QThread):
     finished = pyqtSignal(tuple)
 
-    def __init__(self, url, args=None, user_agent=USER_AGENT, timeout=10):
+    def __init__(self, url, args=None, headers=HEADERS, timeout=10):
         super().__init__()
 
         self.url = url
         self.args = args
-        self.user_agent = user_agent
+        self.headers = headers
         self.timeout = timeout
 
     def __run__(self):
-        status, data = get_data(self.url, self.args, self.user_agent, self.timeout)
+        status, data = get_data(self.url, self.args, self.headers, self.timeout)
 
         return (status, data)
 
@@ -116,20 +115,18 @@ class Downloader(QThread):
     finished = pyqtSignal(tuple)
     update = pyqtSignal(tuple)
 
-    def __init__(self, url: str, save_path: str, user_agent: str = USER_AGENT):
+    def __init__(self, url: str, save_path: str, headers=HEADERS):
         self.url = url
         self.save_path = save_path
-        self.user_agent = user_agent
+        self.headers = headers
 
         super().__init__()
 
     def run(self):
-        headers = {
-            "User-Agent": self.user_agent
-        }
         
         try:
-            response = requests.get(self.url, headers=headers, stream=True)
+            # print(self.url, self.headers)
+            response = requests.get(self.url, headers=self.headers, stream=True)
 
             count = 0
             total = int(response.headers.get("Content-Length", 1))
@@ -155,13 +152,13 @@ class Downloader(QThread):
                         f.write(chunk)
 
             self.finished.emit((True, None))
-        except Exception as e:
+        except KeyboardInterrupt as e:
             self.finished.emit((False, e))
 
 
         # print(self.progress.value())
 
-def download_file(url:str, save_path:str, title:str, user_agent:str=USER_AGENT, parent=None):
+def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=None):
     from libs.pages import ProgressWindow
 
     logger = logging.getLogger("Main")
@@ -193,7 +190,7 @@ def download_file(url:str, save_path:str, title:str, user_agent:str=USER_AGENT, 
     logger.info(f"Starting download:{url}", extra={"class": "Downloader"})
     progress_window = ProgressWindow(title, parent)
 
-    progress_window.worker = Downloader(url, save_path, user_agent)
+    progress_window.worker = Downloader(url, save_path, headers)
     progress_window.worker.update.connect(progress_window.update_)   
     progress_window.worker.finished.connect(finish)
 
@@ -234,7 +231,7 @@ class GetPointsWorker(RequestsWorker):
 
 class GetPapersListWorker(RequestsWorker):
 
-    def __init__(self, page, subject, grade, limit=10):
+    def __init__(self, page, subject, grade, limit=10, logger=None):
         super().__init__(f"https://www.jingshibang.com/api/smallclass/paperlist")
 
         self.args = {
@@ -256,6 +253,9 @@ class GetPapersListWorker(RequestsWorker):
             "catid": "",
             "type": 0
         }
+
+        self.logger = logger
+
 
     def setType(self, type):
         self.args["store_type"] = type
@@ -303,7 +303,18 @@ class GetPapersListWorker(RequestsWorker):
 
     
     def run(self):
+
+        args_str = ""
+        for k, v in self.args.items():
+            args_str += f"          {k}: {v}\n"
+        args_str = args_str[:-1]
+
+        self.logger.info(f'''Start searching with args:
+{args_str}''')
+
         status, data = self.__run__()
+
+        self.logger.info(f"Search finished with data: {str(data)[:20]}...more{len(str(data)) - 20}")
         
         self.finished.emit((status, data))
 
@@ -408,5 +419,48 @@ class LoginWorker(QThread):
             self.got_avator.emit(True)
         else:
             self.error.emit(("avator", data))
+
+class GetPreferredInfoWorker(RequestsWorker):
+    finished = pyqtSignal(tuple)
+
+    def __init__(self, id, config, logger: logging.Logger, parent=None):
+        
+        token = config.get("account.token", "")
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Authori-Zation": f"Bearer {token}"
+        }
+        super().__init__(f"https://www.jingshibang.com/api/product/detail/{id}", headers=headers)
+
+        self.config = config
+        self.logger = logger
+
+    def run(self):
+        status, data = self.__run__()
+        
+        if status:
+            if data["status"] == 200:
+                self.finished.emit((True, data["data"]))
+            else:
+                self.finished.emit((False, data["data"]))
+        else:
+            self.finished.emit((False, data))
+
+if __name__ == "__main__":
+    from utility.config import JsonConfig
+    from PyQt5.QtWidgets import QApplication
+
+    app = QApplication([])
+
+    def finished(data):
+        print(data)
+    
+
+    worker = GetPreferredInfoWorker(input(), JsonConfig("config.json"), logging.getLogger(__name__))
+
+    worker.finished.connect(finished)
+    worker.start()
+
+    app.exec_()
 
 
