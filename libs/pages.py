@@ -8,7 +8,7 @@ from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton,
                             PrimaryPushButton, IndeterminateProgressBar,  ProgressBar, TitleLabel,
                             SwitchButton, SingleDirectionScrollArea, SmoothMode, IndeterminateProgressRing,
                             BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel, FluentWindow,
-                            NavigationItemPosition, TreeWidget, CardWidget,
+                            NavigationItemPosition, TreeWidget, CardWidget, BreadcrumbBar
                             )
 from qfluentwidgets import FluentIcon as FIF
 
@@ -153,7 +153,26 @@ class Preferred(QFrame):
 
         v_layout.addLayout(self.initSearch())
 
+        self.path_label = BodyLabel()
+        self.path_label.setStyleSheet("font-size: 20px;")
+        v_layout.addWidget(self.path_label)
+
         v_layout.addLayout(self.initContent())
+
+        self.page_layout = QHBoxLayout()
+        v_layout.addLayout(self.page_layout)
+        
+        self.page_back_button = ToolButton(FIF.LEFT_ARROW)
+        self.page_back_button.setToolTip("上一页")
+        self.page_layout.addWidget(self.page_back_button, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        self.page_label = BodyLabel("-/- 共 - 条")
+        self.page_layout.addWidget(self.page_label, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        self.page_forward_button = ToolButton(FIF.RIGHT_ARROW)
+        self.page_forward_button.setToolTip("下一页")
+        self.page_layout.addWidget(self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter)
+
 
         self.setLayout(v_layout)
 
@@ -169,7 +188,7 @@ class Preferred(QFrame):
         search_layout.addWidget(self.state_input)
 
         self.subject_input = ComboBox()
-        self.subject_input.addItems(["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "道法"])
+        self.subject_input.addItems(["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "政治"])
         search_layout.addWidget(self.subject_input)
 
         search_layout.addWidget(BodyLabel("类型："))
@@ -229,8 +248,6 @@ class Preferred(QFrame):
         self.content_data_layout = QVBoxLayout()
         self.content_data_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         scroll_widget.setLayout(self.content_data_layout)
-
-        
 
         content_layout.addWidget(scroll_area)
 
