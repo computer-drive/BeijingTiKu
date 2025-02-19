@@ -5,5 +5,5 @@ data/
 *.pyd
 *.pdf
 *.docx
-.ideas/*
+.ideas/
 config.json
