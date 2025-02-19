@@ -4,7 +4,7 @@ from libs.pages import (SearchPage, Preferred, LocalPage,
 from libs.widgets import ItemCard, PreferredCard
 from libs.worker import (SearchWorker, GetCategoryWorker,
                           GetPointsWorker, GetPapersListWorker, LoginWorker)
-from qfluentwidgets import InfoBar, MessageBox, BodyLabel
+from qfluentwidgets import InfoBar, MessageBox
 from PyQt5.QtWidgets import  QTreeWidgetItem
 from PyQt5.QtGui import  QPixmap, QImage
 from PyQt5.QtCore import Qt

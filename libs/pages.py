@@ -8,7 +8,7 @@ from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton,
                             PrimaryPushButton, IndeterminateProgressBar,  ProgressBar, TitleLabel,
                             SwitchButton, SingleDirectionScrollArea, SmoothMode, IndeterminateProgressRing,
                             BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel, FluentWindow,
-                            NavigationItemPosition, TreeWidget, CardWidget, BreadcrumbBar
+                            NavigationItemPosition, TreeWidget, CardWidget, GroupHeaderCardWidget
                             )
 from qfluentwidgets import FluentIcon as FIF
 
@@ -315,115 +315,77 @@ class SettingsPage(QFrame):
 
         setting_widget = QWidget(self, objectName="setting_widget")
         setting_widget.setStyleSheet("QWidget{background: transparent;}") 
-
-        v_layout = QVBoxLayout(setting_widget)
-
-        # 设置窗口-标题
-        v_layout.addWidget(LargeTitleLabel("设置"))
-
-        v_layout.addWidget(SubtitleLabel("个性化"))
-
-        self.theme_input = ComboBox()
-        self.theme_input.addItems(["浅色", "深色", "跟随系统"])
-        v_layout.addWidget(SettingCard(FIF.BRUSH, "主题", "调整应用的主题外观", [self.theme_input]))
-
-        self.color_input = ComboBox()
-        v_layout.addWidget(SettingCard(FIF.PALETTE, "颜色", "调整应用的主题颜色", [self.color_input]))
-
-        v_layout.addWidget(SubtitleLabel("本地缓存"))
-
-        self.cache_info_size = CaptionLabel("试卷信息缓存：0.0 MB")
-        self.cache_file_size=  CaptionLabel("试卷文件缓存：0.0 MB")
-        self.cache_total_size = CaptionLabel("总计：0.0 MB")
-        self.cache_size_progress = ProgressBar()
-        self.clear_button = PrimaryPushButton("清除缓存")
-
-        v_layout.addWidget(SettingCard(
-            FIF.CLOUD, "缓存", "管理本地缓存",
-            [self.cache_info_size, self.cache_file_size, self.cache_total_size, self.cache_size_progress, self.clear_button],
-            "v_layout"
-        ))
-
-        
-        self.allow_cache_info = SwitchButton()
-        self.allow_cache_info.setOffText("关")
-        self.allow_cache_info.setOnText("开")
-
-        v_layout.addWidget(SettingCard(
-            FIF.MENU, "允许缓存试卷信息", "搜索时缓存试卷信息",
-            [self.allow_cache_info]
-        ))
-
-        
-
-        self.allow_cache_file = SwitchButton()
-        self.allow_cache_file.setOffText("关")
-        self.allow_cache_file.setOnText("开")
-
-        v_layout.addWidget(SettingCard(
-            FIF.FOLDER, "允许缓存试卷文件" , "下载时缓存文件",
-            [self.allow_cache_file]
-        ))
-
-        v_layout.addWidget(SubtitleLabel("高级"))
-        tip_label = CaptionLabel("*注意：以下设置仅供开发者调试使用，普通用户请不要随意更改。您可以通过点击'显示高级设置'来查看。")
-        tip_label.setTextColor("#ffcb0d", "#ffcb0d")
-        v_layout.addWidget(tip_label)
-
-        self.show_advanced_setting = PushButton("显示高级设置")
-        self.show_advanced_setting.clicked.connect(lambda: self.advanced_frame.setHidden(False))
-        v_layout.addWidget(self.show_advanced_setting, alignment=Qt.AlignmentFlag.AlignLeft)
-
-        self.advanced_frame = QFrame(self)
-        self.advanced_frame.setHidden(True)
-
-
-        advanced_layout = QVBoxLayout()
-
-        self.custom_url_input = LineEdit()
-        advanced_layout.addWidget(SettingCard(
-            FIF.WIFI, "自定义服务器地址", "自定义服务器地址，留空使用默认", [self.custom_url_input]
-        ))
-
-        self.custom_user_agent_input = LineEdit()
-        advanced_layout.addWidget(SettingCard(
-            FIF.PEOPLE, "自定义User-Agent", "自定义User-Agent，留空使用默认", [self.custom_user_agent_input]
-        ))
-
-        self.show_delay_input = SwitchButton()
-        self.show_delay_input.setOnText("开")
-        self.show_delay_input.setOffText("关")
-
-        self.dalay_input = SpinBox()
-        advanced_layout.addWidget(SettingCard(
-            FIF.CLOUD_DOWNLOAD, "搜索延迟设置", "搜索后为防止被网站拉黑，短时间内进行多次上搜索时提醒",
-            [self.show_delay_input, self.dalay_input],
-            "v_layout"
-        ))
-        self.advanced_frame.setLayout(advanced_layout)
-
-
-        v_layout.addWidget(self.advanced_frame)
-
-        v_layout.addWidget(CaptionLabel("其他"))
-
-        self.reset_button = PushButton("重置所有设置")
-        v_layout.addWidget(SettingCard(
-            FIF.REMOVE_FROM, "重置所有设置", "重置所有设置至默认，注意：此操作不可逆", 
-            [self.reset_button]
-        ))
-
-        v_layout.addWidget(SettingCard(
-            FIF.INFO, "关于", "查看软件信息",
-            [PushButton("查看")]
-        ))
-
-
-        setting_widget.setLayout(v_layout)
-        
         socall_area.setWidget(setting_widget)
 
+        v_layout = QVBoxLayout(setting_widget)
         v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        setting_widget.setLayout(v_layout)
+
+
+        v_layout.addWidget(LargeTitleLabel("设置"))
+
+
+        cache_card = GroupHeaderCardWidget()
+        cache_card.setBorderRadius(8)
+        
+        cache_card.setTitle("缓存设置")
+
+        info_layout = QVBoxLayout()
+        self.cache_info_label = BodyLabel("信息缓存大小：0.00 MB")
+        info_layout.addWidget(self.cache_info_label)
+        self.cache_file_label = BodyLabel("文件缓存大小：0.00 MB")
+        info_layout.addWidget(self.cache_file_label)
+        self.cache_progress = ProgressBar()
+        info_layout.addWidget(self.cache_progress)
+        self.cache_clear_button = PushButton("清理缓存")
+        info_layout.addWidget(self.cache_clear_button)
+
+        info_widget = QWidget()
+        info_widget.setLayout(info_layout)
+
+        cache_card.addGroup(FIF.INFO, "缓存管理", "查看和管理缓存信息", info_widget)
+
+        self.cache_perferred_input = SwitchButton()
+        self.cache_perferred_input.setOnText("开")
+        self.cache_perferred_input.setOffText("关")
+        cache_card.addGroup(FIF.INFO, "缓存优选信息", "获取优选信息时优先使用缓存", self.cache_perferred_input)
+
+        self.cache_collect_input = SwitchButton()
+        self.cache_collect_input.setOnText("开")
+        self.cache_collect_input.setOffText("关")
+        cache_card.addGroup(FIF.INFO, "缓存收藏信息", "收藏时缓存信息", self.cache_collect_input)
+
+        self.cache_max_size_input = SpinBox()
+        self.cache_max_size_input.setRange(0, 1024)
+        cache_card.addGroup(FIF.INFO, "缓存最大大小", "缓存最大大小(单位：MB)", self.cache_max_size_input)
+
+        v_layout.addWidget(cache_card)
+
+
+
+        update_card = GroupHeaderCardWidget()
+        update_card.setTitle("更新")
+
+        self.check_update_button = PushButton("检查更新")
+        update_card.addGroup(FIF.INFO, "检查更新", "检查更新", self.check_update_button)
+
+        self.change_log_button = PushButton("更新日志")
+        update_card.addGroup(FIF.INFO, "更新日志", "查看更新日志", self.change_log_button)
+
+        self.beta_button = PushButton("Beta测试版选项")
+        update_card.addGroup(FIF.INFO, "Beta测试版选项", "Beta测试版选项", self.beta_button)
+
+        v_layout.addWidget(update_card)
+
+
+
+
+        
+
+
+
+        
+
 
 
 class LoginWindow(MessageBoxBase):
@@ -482,7 +444,6 @@ class LoginWindow(MessageBoxBase):
         self.loading.show()
 
         self.qrcode_label.clear()
-
 
 
 class AccountPage(QFrame):
@@ -615,11 +576,7 @@ class AccountPage(QFrame):
         self.name_label.setText(name)
         self.phone_label.setText(f"{phone_str} {vip_str}")
 
-        
-
-    
-    
-    
+   
 class ProgressWindow(MessageBoxBase):
     def __init__(self, content: str, parent=None):
         super().__init__(parent)
