@@ -1,5 +1,5 @@
 from libs.pages import (SearchPage, Preferred, LocalPage,
-                         CollectsPage, SettingsPage, LoadingWindow,
+                        SettingsPage, LoadingWindow,
                          AccountPage,)
 from libs.widgets import ItemCard, PreferredCard
 from libs.worker import (SearchWorker, GetCategoryWorker,
