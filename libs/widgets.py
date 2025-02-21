@@ -7,6 +7,7 @@ from qfluentwidgets import (CardWidget, TitleLabel, BodyLabel, InfoBadge, InfoBa
 from qfluentwidgets import FluentIcon as FIF
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QSizePolicy
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QPixmap
 from typing import Literal
 
 class ItemCard(CardWidget):
@@ -488,6 +489,19 @@ class PreferredCard(CardWidget):
             self.collect_button.setText("取消收藏")
 
         self.config.set("collects", collects)
+
+class MaterialIcon(QIcon):
+    def __init__(self, name: str, width: int = 32, height: int = 32):
+        if os.path.exists(f"icons/{name}.svg"):
+            super().__init__(QPixmap(f"icons/{name}.svg").scaled(width, height, Qt.KeepAspectRatio))
+
+        else:
+            raise ValueError(f"Icon {name} not found.")
+        
+        
+        
+    
+        
 
 
         
