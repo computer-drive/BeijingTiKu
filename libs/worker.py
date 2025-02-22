@@ -5,17 +5,14 @@ from qfluentwidgets import InfoBar
 import requests
 from typing import Literal
 import time
+from libs.consts import *
 
 
 download_count = 0
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
-HEADERS = {
-    "User-Agent": USER_AGENT
-}
 
-def get_data(url, args=None, headers=HEADERS, timeout=10, data_type:Literal["json", "text", "bytes", "response"]="json"):
+def get_data(url, args=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type:Literal["json", "text", "bytes", "response"]="json"):
     
     try:
         response = requests.get(url, params=args, headers=headers, timeout=timeout)
@@ -36,7 +33,7 @@ def get_data(url, args=None, headers=HEADERS, timeout=10, data_type:Literal["jso
     except Exception as e:
         return (False, e)
     
-def post_data(url, data=None, headers=HEADERS, timeout=10, data_type:Literal["json", "text", "bytes", "response"]="json"):
+def post_data(url, data=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type:Literal["json", "text", "bytes", "response"]="json"):
 
 
     try:
@@ -61,7 +58,7 @@ def post_data(url, data=None, headers=HEADERS, timeout=10, data_type:Literal["js
 def get_total(args):
     args["page"] = 114514
 
-    status, data = get_data("https://www.jingshibang.com/api/products", args, timeout=10)
+    status, data = get_data(SEARCH_PAPER_URL, args, timeout=DEFAULT_TIMEOUT)
     if status:
         return data["data"][0]["count"]
     else:
@@ -70,7 +67,7 @@ def get_total(args):
 class RequestsWorker(QThread):
     finished = pyqtSignal(tuple)
 
-    def __init__(self, url, args=None, headers=HEADERS, timeout=10):
+    def __init__(self, url, args=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT):
         super().__init__()
 
         self.url = url
@@ -98,7 +95,7 @@ class SearchWorker(RequestsWorker):
         }
 
         super().__init__(
-            "https://www.jingshibang.com/api/products",
+            SEARCH_PAPER_URL,
             self.args
         )
 
@@ -172,7 +169,7 @@ def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=Non
                 f"文件已保存到: {save_path}",
                 orient=Qt.Vertical,
                 parent=parent,
-                duration=5000
+                duration=INFO_BAR_DURATION
             )
             logger.info(f"Download successful.", extra={"class": "Downloader"})
         else:
@@ -181,7 +178,7 @@ def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=Non
                 f"详细信息请查看日志文件",
                 orient=Qt.Vertical,
                 parent=parent,
-                duration=5000
+                duration=INFO_BAR_DURATION
             )
             logger.error(f"Download failed. details: {data[1]}", extra={"class": "Downloader"})
 
@@ -335,7 +332,7 @@ class LoginWorker(QThread):
         self.__stop__ = True
     
     def run(self):
-        status, wxpic = post_data("https://www.jingshibang.com/api/getwxpic", {})
+        status, wxpic = post_data(LOGIN_GET_PIC_URL, {})
         if status:
             if wxpic["status"] == 200:
                 qrcode_url = wxpic["data"]["url"]
@@ -374,7 +371,7 @@ class LoginWorker(QThread):
                 self.logger.info("Stopped.")
                 return
 
-            status, data = get_data("https://www.jingshibang.com/api/wechat/pcauth2", {"wechat_flag": flag})
+            status, data = get_data(LOGIN_URL, {"wechat_flag": flag})
 
             if status:
                 if data["status"] == 200:
@@ -425,12 +422,12 @@ class GetPreferredInfoWorker(RequestsWorker):
 
     def __init__(self, id, config, logger: logging.Logger, parent=None):
         
-        token = config.get("account.token", "")
+        token = config.get(CONFIG_ACCOUNT_TOKEN, "")
         headers = {
             "Authorization": f"Bearer {token}",
             "Authori-Zation": f"Bearer {token}"
         }
-        super().__init__(f"https://www.jingshibang.com/api/product/detail/{id}", headers=headers)
+        super().__init__(f"{GET_PREFERRED_URL}{id}", headers=headers)
 
         self.config = config
         self.logger = logger

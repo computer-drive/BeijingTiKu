@@ -2,6 +2,7 @@ import logging
 import colorlog
 import os
 import threading
+from libs.consts import *
 from utility.ansi import fore, back, style
 import inspect
 
@@ -48,9 +49,9 @@ class LogFormatter(colorlog.ColoredFormatter):
 
 def create_logger(name:str = "",
                   level:int = logging.INFO,
-                  format:str = "%(color)s%(class_name)s %(levelname)s %(message)s%(reset)s",
+                  format:str = LOGGER_FORMAT ,
                   file_logger:bool = True,
-                  file_logger_path:str = "logs",
+                  file_logger_path:str = LOG_PATH ,
                   file_logger_name:str = "app.log"
                   ):
     logger = colorlog.getLogger(name)

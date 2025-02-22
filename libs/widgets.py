@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QSizePolicy
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from typing import Literal
+from libs.consts import *
 
 class ItemCard(CardWidget):
     def __init__(self,
@@ -114,12 +115,12 @@ class ItemCard(CardWidget):
                 isClosable=True,
                 position=InfoBarPosition.TOP_RIGHT,
                 parent=self._parent,
-                duration=5000
+                duration=INFO_BAR_DURATION
             )
-        elif os.path.exists(f"data/files/{self.title}.pdf"):
-            os.system(f"start data/files/{self.title}.pdf")
+        elif os.path.exists(f"{FILE_PATH}{self.title}.pdf"):
+            os.system(f"start {FILE_PATH}/{self.title}.pdf")
         else:
-            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}", f"data/files/{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
+            download_file(f"{DOWNLOAD_URL}{self.pdf_file}", f"{FILE_PATH}{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
             self.download_pdf_button.setText("查看PDF文件")
 
     def downloadWord(self):
@@ -131,27 +132,27 @@ class ItemCard(CardWidget):
                 isClosable=True,
                 position=InfoBarPosition.TOP_RIGHT,
                 parent=self._parent,
-                duration=5000
+                duration=INFO_BAR_DURATION
             )
-        elif os.path.exists(f"data/files/{self.title}.docx"):
-            os.system(f"start data/files/{self.title}.docx")
+        elif os.path.exists(f"{FILE_PATH}{self.title}.docx"):
+            os.system(f"start {FILE_PATH}{self.title}.docx")
         else:
-            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.word_file}", f"data/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
+            download_file(f"{DOWNLOAD_URL}{self.word_file}", f"{FILE_PATH}{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
             self.download_word_button.setText("查看Word文件")
 
     def viewWeb(self):
-        os.system(f"start https://www.jingshibang.com/home/detailPaper/?id={self.id}&title={self.title}")
+        os.system(f"start {WEB_URL}?id={self.id}&title={self.title}")
     
     def viewPdf(self):
-        os.system(f"start https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}")
+        os.system(f"start {DOWNLOAD_URL}{self.pdf_file}")
 
     def refreshButton(self):
-        if os.path.exists(f"data/files/{self.title}.pdf"):
+        if os.path.exists(f"{FILE_PATH}{self.title}.pdf"):
             self.download_pdf_button.setText("查看PDF文件")
         else:
             self.download_pdf_button.setText("下载PDF文件")
         
-        if os.path.exists(f"data/files/{self.title}.docx"):
+        if os.path.exists(f"{FILE_PATH}{self.title}.docx"):
             self.download_word_button.setText("查看Word文件")
         else:
             self.download_word_button.setText("下载Word文件")
@@ -165,7 +166,7 @@ class ItemCard(CardWidget):
             self.collect_button.setText("收藏")
 
     def collectButton(self):
-        collects = self.config.get("collects", [])
+        collects = self.config.get(CONFIG_COLLECTS, [])
 
         item = [self.id, self.title]
         if item in collects:
@@ -175,7 +176,7 @@ class ItemCard(CardWidget):
             collects.append(item)
             self.collect_button.setText("取消收藏")
 
-        self.config.set("collects", collects)
+        self.config.set(CONFIG_COLLECTS, collects)
 
 class SettingCard(CardWidget):
     def __init__(self, icon, title:str, content:str, actions:list[QWidget], action_layout_type:Literal["h_layout", "v_layout"]="h_layout",parent=None):
@@ -375,7 +376,7 @@ class PreferredCard(CardWidget):
         self.loading.setFixedSize(45, 45)
         right_layout.addWidget(self.loading)
 
-        self.error_label = BodyLabel("(⊙x⊙;)")
+        self.error_label = BodyLabel(ERROR_TEXT)
         self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.error_label.setStyleSheet("font-size: 40px;")
         self.error_label.hide()
@@ -427,12 +428,12 @@ class PreferredCard(CardWidget):
                 isClosable=True,
                 position=InfoBarPosition.TOP_RIGHT,
                 parent=self._parent,
-                duration=5000
+                duration=INFO_BAR_DURATION
             )
-        elif os.path.exists(f"data/files/{self.title}.pdf"):
-            os.system(f'"data/files/{self.title}.pdf"')
+        elif os.path.exists(f"{FILE_PATH}{self.title}.pdf"):
+            os.system(f'{FILE_PATH}{self.title}.pdf"')
         else:
-            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}", f"data/files/{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
+            download_file(f"{DOWNLOAD_URL}{self.pdf_file}", f"{FILE_PATH}{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
             self.download_pdf_button.setText("查看PDF文件")
 
     def downloadWord(self):
@@ -444,32 +445,33 @@ class PreferredCard(CardWidget):
                 isClosable=True,
                 position=InfoBarPosition.TOP_RIGHT,
                 parent=self._parent,
-                duration=5000
+                duration=INFO_BAR_DURATION
+
             )
-        elif os.path.exists(f"data/files/{self.title}.docx"):
-            os.system(f'"data/files/{self.title}.docx')
+        elif os.path.exists(f"{FILE_PATH}{self.title}.docx"):
+            os.system(f'"{FILE_PATH}{self.title}.docx')
         else:
-            download_file(f"https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.word_file}", f"data/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
+            download_file(f"{DOWNLOAD_URL}{self.word_file}", f"data/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
             self.download_word_button.setText("查看Word文件")
 
     def viewWeb(self):
-        os.system(f'start https://www.jingshibang.com/home/detailPaper/?id={self.id}&title={self.title}')
+        os.system(f'start {WEB_URL}?id={self.id}&title={self.title}')
     
     def viewPdf(self):
-        os.system(f"start https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com{self.pdf_file}")
+        os.system(f"start {DOWNLOAD_URL}{self.pdf_file}")
 
     def refreshButton(self):
-        if os.path.exists(f"data/files/{self.title}.pdf"):
+        if os.path.exists(f"{FILE_PATH}{self.title}.pdf"):
             self.download_pdf_button.setText("查看PDF文件")
         else:
             self.download_pdf_button.setText("下载PDF文件")
         
-        if os.path.exists(f"data/files/{self.title}.docx"):
+        if os.path.exists(f"{FILE_PATH}{self.title}.docx"):
             self.download_word_button.setText("查看Word文件")
         else:
             self.download_word_button.setText("下载Word文件")
 
-        collects = self.config.get("collects", [])
+        collects = self.config.get(CONFIG_COLLECTS, [])
         item = [self.id, self.title]
         if item in collects:
             self.collect_button.toggle()
@@ -478,7 +480,7 @@ class PreferredCard(CardWidget):
             self.collect_button.setText("收藏")
 
     def collectButton(self):
-        collects = self.config.get("collects", [])
+        collects = self.config.get(CONFIG_COLLECTS, [])
 
         item = [self.id, self.title]
         if item in collects:
@@ -488,12 +490,12 @@ class PreferredCard(CardWidget):
             collects.append(item)
             self.collect_button.setText("取消收藏")
 
-        self.config.set("collects", collects)
+        self.config.set(CONFIG_COLLECTS, collects)
 
 class MaterialIcon(QIcon):
     def __init__(self, name: str, width: int = 32, height: int = 32):
-        if os.path.exists(f"icons/{name}.svg"):
-            super().__init__(QPixmap(f"icons/{name}.svg").scaled(width, height, Qt.KeepAspectRatio))
+        if os.path.exists(f"{ICON_PATH}{name}.svg"):
+            super().__init__(QPixmap(f"{ICON_PATH}{name}.svg").scaled(width, height, Qt.KeepAspectRatio))
 
         else:
             raise ValueError(f"Icon {name} not found.")

@@ -1,4 +1,5 @@
 from libs.widgets import MaterialIcon as MIcon
+from libs.consts import *
 from utility.format import format_capacity, format_time
 from PyQt5.QtWidgets import  (QVBoxLayout, QHBoxLayout, QFrame,
                               QWidget, QSizePolicy, QLabel)
@@ -61,26 +62,22 @@ class SearchPage(QFrame):
 
         args_layout.addWidget(BodyLabel("阶段&学科:"))
         self.stage_input = ComboBox()
-        self.stage_input.addItems(["小学", "初中", "高中"])
+        self.stage_input.addItems(SEARCH_STATE)
         
         args_layout.addWidget(self.stage_input)
 
         self.subject_input = ComboBox()
-        self.subject_input.addItems(["语文", "数学", "英语", "道法", "物理", "地理", "生物", "历史", "化学"])
+        self.subject_input.addItems(SEARCH_STATE)
         args_layout.addWidget(self.subject_input)
 
         args_layout.addWidget(BodyLabel("年级:"))
         self.grade_input = ComboBox()
-        self.grade_input.addItems(["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"])
+        self.grade_input.addItems(PRIMARY_GRADE)
         args_layout.addWidget(self.grade_input)
 
         args_layout.addWidget(BodyLabel("类型:"))
         self.type_input = ComboBox()
-        self.type_input.addItems([
-            '全部', '真题', '(上)期中', '(上)期末', '(下)期中', '(下)期末', '一模', '二模', '月考',
-            '合格考试', '分班考试', '真题汇编', '(上)期中汇编', '(上)期末汇编', '(下)期中汇编', '(下)期末汇编',
-            '一模汇编', '二模汇编', '合格考汇编'
-            ])
+        self.type_input.addItems(SEARCH_PAPER_TYPE)
         args_layout.addWidget(self.type_input)
 
         args_layout.addWidget(BodyLabel("时间:"))
@@ -89,10 +86,7 @@ class SearchPage(QFrame):
 
         args_layout.addWidget(BodyLabel("地区:"))
         self.region_input = ComboBox()
-        self.region_input.addItems([
-        '北京', '海淀', '西城', '朝阳', '东城', '房山', '石景山', '顺义', '昌平',
-        '通州', '大兴', '门头沟', '延庆', '怀柔', '密云', '经开', '燕山', '延庆'
-        ])
+        self.region_input.addItems(SEARCH_REGION)
         args_layout.addWidget(self.region_input)
 
 
@@ -111,11 +105,11 @@ class SearchPage(QFrame):
     def initContentData(self):
         self.scroll_area = SingleDirectionScrollArea(orient=Qt.Vertical)
         self.scroll_area.setSmoothMode(SmoothMode.NO_SMOOTH)
-        self.scroll_area.setStyleSheet("QScrollArea{background: transparent; border: none}")
+        self.scroll_area.setStyleSheet(SCROLL_AERA_STYLE)
         self.scroll_area.setWidgetResizable(True)
         
         self.content_data = QWidget()
-        self.content_data.setStyleSheet("QWidget{background: transparent}")
+        self.content_data.setStyleSheet(SCROLL_WIDGET_STYLE)
         self.scroll_area.setWidget(self.content_data)
 
         content_layout = QVBoxLayout()
@@ -184,17 +178,17 @@ class Preferred(QFrame):
         search_layout.addWidget(BodyLabel("阶段&学科："))
 
         self.state_input = ComboBox()
-        self.state_input.addItems(["小学", "初中", "高中"])
+        self.state_input.addItems(SEARCH_STATE)
         search_layout.addWidget(self.state_input)
 
         self.subject_input = ComboBox()
-        self.subject_input.addItems(["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "政治"])
+        self.subject_input.addItems(SEARCH_SUBJECT)
         search_layout.addWidget(self.subject_input)
 
         search_layout.addWidget(BodyLabel("类型："))
 
         self.type_input = ComboBox()
-        self.type_input.addItems(["全部","汇编", "测试", "课件", "讲义", "知识", "专辑"])
+        self.type_input.addItems(SEARCH_PREFERRED_TYPE)
         search_layout.addWidget(self.type_input)
 
         self.assembly_type_label = BodyLabel("汇编类型：")
@@ -203,7 +197,7 @@ class Preferred(QFrame):
 
         self.assembly_type_input = ComboBox()
         self.assembly_type_input.setVisible(False)
-        self.assembly_type_input.addItems(["全部", "(上)期末汇编", "(上)其中汇编", "一模汇编", "二模汇编", "(下)期中汇编", "(下)期末汇编", "合格考汇编"])
+        self.assembly_type_input.addItems(SEARCH_ASSEMBLE_TYPE)
         self.assembly_type_input.setVisible(False)
         search_layout.addWidget(self.assembly_type_input)
 
@@ -212,7 +206,7 @@ class Preferred(QFrame):
         search_layout.addWidget(self.assembly_grade_label)
 
         self.assembly_grade_input = ComboBox()
-        self.assembly_grade_input.addItems(["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"])
+        self.assembly_grade_input.addItems(PRIMARY_GRADE)
         self.assembly_grade_input.setVisible(False)
         search_layout.addWidget(self.assembly_grade_input)
 
@@ -237,12 +231,12 @@ class Preferred(QFrame):
         content_layout.addWidget(self.catetory_widget)
 
         scroll_area = SingleDirectionScrollArea(orient=Qt.Vertical)
-        scroll_area.setStyleSheet("QScrollArea{background: transparent; border: none}")
+        scroll_area.setStyleSheet(SCROLL_AERA_STYLE)
         scroll_area.setSmoothMode(SmoothMode.NO_SMOOTH)
         scroll_area.setWidgetResizable(True)
 
         scroll_widget = QWidget()
-        scroll_widget.setStyleSheet("QWidget{background: transparent}")
+        scroll_widget.setStyleSheet(SCROLL_WIDGET_STYLE)
         scroll_area.setWidget(scroll_widget)
 
         self.content_data_layout = QVBoxLayout()
@@ -260,7 +254,7 @@ class Preferred(QFrame):
 
     def initSearchNull(self):
         
-        self.icon_label = BodyLabel("(>_<)")
+        self.icon_label = BodyLabel(SEARCH_NULL_TEXT)
         self.icon_label.setStyleSheet("font-size: 60px;")
         self.content_data_layout.addWidget(self.icon_label, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
 
@@ -282,7 +276,6 @@ class LocalPage(QFrame):
         self.setLayout(v_layout)
 
 
-
 class SettingsPage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -297,12 +290,12 @@ class SettingsPage(QFrame):
         socall_area = SingleDirectionScrollArea(orient=Qt.Vertical) # 创建垂直方向滚动区域
         socall_area.setWidgetResizable(True) # 设置可调整大小
         socall_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        socall_area.setStyleSheet("QScrollArea{background: transparent; border: none}") # 删除背景和边框
+        socall_area.setStyleSheet(SCROLL_AERA_STYLE) # 删除背景和边框
         socall_area.setSmoothMode(SmoothMode.NO_SMOOTH) # 设置不平滑滚动
         self.v_layout.addWidget(socall_area)
 
         setting_widget = QWidget(self, objectName="setting_widget")
-        setting_widget.setStyleSheet("QWidget{background: transparent;}") 
+        setting_widget.setStyleSheet(SCROLL_WIDGET_STYLE) 
         socall_area.setWidget(setting_widget)
 
         v_layout = QVBoxLayout(setting_widget)
@@ -413,7 +406,7 @@ class LoginWindow(MessageBoxBase):
         content_layout.addStretch()
 
         self.loading = IndeterminateProgressRing()
-        self.loading.setFixedSize(45, 45)
+        self.loading.setFixedSize(*PROGRESS_RING_SIZE)
         content_layout.addWidget(self.loading, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.qrcode_label = QLabel()
@@ -480,8 +473,8 @@ class AccountPage(QFrame):
 
 
     def changeToken(self):
-        logined = self.config.get("account.login", False)
-        token = self.config.get("account.token", "")
+        logined = self.config.get(CONFIG_ACCOUNT_LOGIN, False)
+        token = self.config.get(CONFIG_ACCOUNT_TOKEN, "")
 
         # print(logined)
         if logined:
@@ -532,7 +525,7 @@ class AccountPage(QFrame):
         return card
 
     def changeButton(self):
-        logined = self.config.get("account.login", False)
+        logined = self.config.get(CONFIG_ACCOUNT_LOGIN, False)
 
         if logined:
             self.login_button.hide()
@@ -542,13 +535,13 @@ class AccountPage(QFrame):
             self.logout_button.hide()
 
     def changeText(self):
-        name = self.config.get("account.name", "未登录")
-        logined = self.config.get("account.login", False)
-        is_vip = self.config.get("account.is_vip", False)
-        phone = self.config.get("account.phone", "")
+        name = self.config.get(CONFIG_ACCOUNT_NAME, "未登录")
+        logined = self.config.get(CONFIG_ACCOUNT_LOGIN, False)
+        is_vip = self.config.get(CONFIG_ACCOUNT_IS_VIP, False)
+        phone = self.config.get(CONFIG_ACCOUNT_PHONE, "")
 
         if logined:
-            avator = QIcon("data/avator.jpg")
+            avator = QIcon(AVATOR_PATH)
 
             if is_vip:
                 vip_str = "会员"
@@ -617,7 +610,7 @@ class LoadingWindow(MessageBoxBase):
         self.setMinimumSize(500,300)
 
         progress = IndeterminateProgressRing()
-        progress.setFixedSize(45, 45)
+        progress.setFixedSize(*PROGRESS_RING_SIZE)
         self.viewLayout.addWidget(progress, alignment=Qt.AlignmentFlag.AlignCenter)
 
         content_layout = QVBoxLayout()
@@ -643,7 +636,7 @@ class MainWindow(FluentWindow):
         self.config = config
         self.logger = logger
 
-        self.setWindowTitle("BeijingTiKu") # 设置窗口标题
+        self.setWindowTitle(WINDOW_TITLE) # 设置窗口标题
 
         self.searchInterface = logical.SearchPage(config, logger, self)
         self.searchInterface.setObjectName("searchInterface")
@@ -675,11 +668,11 @@ class MainWindow(FluentWindow):
 
     def initAvator(self):
 
-        logined = self.config.get("account.login", False)
-        name = self.config.get("account.name", "未登录")
+        logined = self.config.get(CONFIG_ACCOUNT_LOGIN, False)
+        name = self.config.get(CONFIG_ACCOUNT_NAME, "未登录")
 
         if logined:
-            avator = QIcon("data/avator.jpg")
+            avator = QIcon(AVATOR_PATH)
         else:
             avator = FIF.PEOPLE
 
