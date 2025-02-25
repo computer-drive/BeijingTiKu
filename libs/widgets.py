@@ -497,12 +497,4 @@ class MaterialIcon(QIcon):
 
         else:
             raise ValueError(f"Icon {name} not found.")
-        
-        
-        
-    
-        
-
-
-        
 
