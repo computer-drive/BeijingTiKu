@@ -6,12 +6,13 @@ from os import _exit
 from logging import getLogger
 from json import dumps
 from sys import argv
+from libs.consts import *
 
 
 
 
 def except_hook(exctype, value, tb):
-    logger = getLogger("Main")
+    logger = getLogger(LOGGER_NAME)
 
 
     tb_str =  ''.join(format_tb(tb))
@@ -19,14 +20,14 @@ def except_hook(exctype, value, tb):
     logger.error(f"Uncaught exception while running: {exctype.__name__}: {value} ")
     logger.error(f"Traceback:\n {tb_str}\n   {exctype.__name__}: {value}")
 
-    if not exists("logs/report/"):
-        makedirs("logs/report/")
+    if not exists(REPORT_PATH):
+        makedirs(REPORT_PATH)
     
     now = datetime.now()
 
-    with open(f"logs/report/{now.strftime('%Y-%m-%d %H-%M')}.json", "w", encoding="utf-8") as f:
+    with open(f"{REPORT_PATH}/{now.strftime('%Y-%m-%d %H-%M')}.json", "w", encoding="utf-8") as f:
         f.write(dumps({
-            "app": "BeijingTiKu",
+            "app": APP_NAME,
             "time": now.strftime("%Y-%m-%d %H:%M:%S"),
             "error_type": f"{exctype.__name__}:{value}",
             "traceback": f"{tb_str}\n   {exctype.__name__}: {value}",

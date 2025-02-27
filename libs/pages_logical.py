@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import  QTreeWidgetItem
 from PyQt5.QtGui import  QPixmap, QImage
 from PyQt5.QtCore import Qt
 from datetime import datetime
+from libs.consts import *
 import os 
 
 def _layout_clear(layout):
@@ -49,7 +50,7 @@ class SearchPage(SearchPage):
                     "没有找到相关内容，以下是可能的原因：\n 1.试卷未上传，一般在考试3-4天后上传 \n2.时间错误 \n3.关键词错误，可尝试删除关键词搜索\n",
                     parent=self,
                     orient=Qt.Vertical,
-                    duration=5000
+                    duration=INFO_BAR_DURATION
                 )
                 continue
 
@@ -88,11 +89,11 @@ class SearchPage(SearchPage):
         current = self.stage_input.currentIndex()
         match current:
             case 0:
-                grade = ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"]
+                grade = PRIMARY_GRADE
             case 1:
-                grade = ["初一", "初二", "初三"]
+                grade = MIDDLE_GRADE
             case 2:
-                grade = ["高一", "高二", "高三"]
+                grade = HIGH_GRADE
 
         self.grade_input.clear()
         self.grade_input.addItems(grade)
@@ -129,7 +130,7 @@ class SearchPage(SearchPage):
             self.progress.setVisible(True)
 
             keyword = self.search_input.text()
-            limit = 20
+            limit = PAPERS_DEFAULT_LIMIT
             page = self.page
             subject = self.subject_input.currentText()
             grade = self.grade_input.currentText()
@@ -157,10 +158,10 @@ class SearchPage(SearchPage):
 
                 if data[0]:
                     if get_total:
-                        if data[2] % 20 == 0:
-                            self.max_page = data[2] // 20
+                        if data[2] % PAPERS_DEFAULT_LIMIT == 0:
+                            self.max_page = data[2] // PAPERS_DEFAULT_LIMIT
                         else:
-                            self.max_page = data[2] // 20 + 1
+                            self.max_page = data[2] // PAPERS_DEFAULT_LIMIT + 1
 
                     
                         self.logger.info(f"Search completed with {len(data[1])} results. total: {data[2]}")
@@ -244,8 +245,6 @@ class Preferred(Preferred):
 
         self.page_label.setText(f"{self.page}/{self.max_page} 共{self.max_page * 10}条")
 
-        
-
     def changeAssembly(self):
         if self.type_input.currentText() == "汇编":
             self.assembly_grade_label.show()
@@ -262,13 +261,13 @@ class Preferred(Preferred):
         current = self.state_input.currentIndex()
         if current == 0:
             self.assembly_grade_input.clear()
-            self.assembly_grade_input.addItems(["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"])
+            self.assembly_grade_input.addItems(PRIMARY_GRADE)
         elif current == 1:
             self.assembly_grade_input.clear()
-            self.assembly_grade_input.addItems(["初一", "初二", "初三"])
+            self.assembly_grade_input.addItems(MIDDLE_GRADE)
         elif current == 2:
             self.assembly_grade_input.clear()
-            self.assembly_grade_input.addItems(["高一", "高二", "高三"])
+            self.assembly_grade_input.addItems(HIGH_GRADE)
 
     def getCategory(self, event):
         if self.got_category:
@@ -399,6 +398,10 @@ class Preferred(Preferred):
                             point_item.id = point["value"]
                             point_item.name = point["label"]
                             point_item.typ = "point"
+
+                            if self.config.get("cache.cache_categories", False):
+                                pass
+                        
                             self.workers[message[2]]["chapter"].addChild(point_item)
 
 
@@ -424,6 +427,7 @@ class Preferred(Preferred):
                     "finished": False,
                     "chapter": chapter_item
                 }
+
                 worker.finished.connect(finished)
                 worker.start()
             
@@ -485,10 +489,10 @@ class Preferred(Preferred):
             
                 count = data[1]["data"]["count"]
 
-                if count % 10 == 0:
-                    self.max_page = count // 10
+                if count % PREFERRED_DEFAULT_LIMIT == 0:
+                    self.max_page = count // PREFERRED_DEFAULT_LIMIT
                 else:
-                    self.max_page = count // 10 + 1
+                    self.max_page = count // PREFERRED_DEFAULT_LIMIT + 1
                 
                 self.pageChange()
 
@@ -535,6 +539,7 @@ class Preferred(Preferred):
 
         self.search_worker.start()
 
+
 class AccountPage(AccountPage):
     def __init__(self, config, logger, parent=None):
         super().__init__(config, logger, parent)
@@ -557,11 +562,11 @@ class AccountPage(AccountPage):
         self.login_worker.__stop__ = True
 
     def logout(self):
-        self.config.set("account.login", False)
-        self.config.set("account.name", "")
-        self.config.set("account.phone", "")
-        self.config.set("account.is_vip", False)
-        self.config.set("account.token", "")
+        self.config.set(CONFIG_ACCOUNT_LOGIN, False)
+        self.config.set(CONFIG_ACCOUNT_NAME, "")
+        self.config.set(CONFIG_ACCOUNT_PHONE, "")
+        self.config.set(CONFIG_ACCOUNT_IS_VIP, False)
+        self.config.set(CONFIG_ACCOUNT_TOKEN, "")
 
         self.changeButton()
         self.changeText()
@@ -579,11 +584,11 @@ class AccountPage(AccountPage):
         self.login_window.qrcode_label.setPixmap(QPixmap.fromImage(image))
 
     def workerLogined(self, data):
-        self.config.set("account.login", True)
-        self.config.set("account.token", data[0])
-        self.config.set("account.name", data[1])
-        self.config.set("account.phone", data[2])
-        self.config.set("account.is_vip", data[3])
+        self.config.set(CONFIG_ACCOUNT_LOGIN, True)
+        self.config.set(CONFIG_ACCOUNT_TOKEN, data[0])
+        self.config.set(CONFIG_ACCOUNT_NAME, data[1])
+        self.config.set(CONFIG_ACCOUNT_PHONE, data[2])
+        self.config.set(CONFIG_ACCOUNT_IS_VIP, data[3])
     
     def workerError(self, data):
         match data[0]:
