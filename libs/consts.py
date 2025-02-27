@@ -15,6 +15,13 @@ FILE_PATH = "data/files/"
 LOG_PATH = "logs"
 ICON_PATH = "icons/"
 
+DEPEND_PATH = [
+    "data",
+    "data/files",
+    "logs",
+    "logs/report",
+]
+
 # Config File Info
 CONFIG_ACCOUNT_LOGIN = "account.login"
 CONFIG_ACCOUNT_NAME = "account.name"

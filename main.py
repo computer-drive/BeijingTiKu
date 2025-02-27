@@ -1,4 +1,5 @@
 import sys
+import os
 from datetime import datetime
 from libs.pages import MainWindow
 from libs.log import create_logger
@@ -18,6 +19,11 @@ logger = create_logger(LOGGER_NAME, # 创建日志记录器
 
 config = JsonConfig(CONFIG_PATH)
 
+for path in DEPEND_PATH:
+    if not os.path.exists(path):
+        logger.warning(f"Dependency path {path} not found, creating...")
+        os.mkdir(path)
+
 if __name__ == "__main__":
     logger.info("App Started.")
 
@@ -33,4 +39,3 @@ if __name__ == "__main__":
         
     sys.exit(result)
 
- 
