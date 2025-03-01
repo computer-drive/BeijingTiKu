@@ -20,6 +20,7 @@ class CardBase(CardWidget):
 
         self.config = config
         self.logger = logger
+        self.parent_ = parent
 
         self.left_widget = left
         self.right_widget = right
@@ -34,10 +35,11 @@ class CardBase(CardWidget):
 
 class ItemCard(CardBase):
     def __init__(self, config, logger, parent=None):
-        super().__init__(self, QWidget(), QWidget(), config, logger, parent)
+        super().__init__( QWidget(), QWidget(), config, logger, parent)
 
         self.config = config
         self.logger = logger
+        self.parent_ = parent
 
         self.left_layout = QVBoxLayout()
         self.left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -48,7 +50,7 @@ class ItemCard(CardBase):
         self.right_widget.setLayout(self.right_layout)
 
 
-    def addText(self, content:str, style:Literal["title", "subtitle", "body", "badge"], color:str="", style:str=""):
+    def addText(self, content:str, style:Literal["title", "subtitle", "body", "badge"]="body", color:str="", stylesheet:str=""):
         match style:
             case "title":
                 label = TitleLabel(content)
@@ -60,28 +62,45 @@ class ItemCard(CardBase):
                 label = InfoBadge.custom(content, color, color)
         
         if style != "":
-            label.setStyleSheet(style)
+            label.setStyleSheet(stylesheet)
 
         self.left_layout.addWidget(label)
 
+        return label
 
-    def addButton(self, button: PushButton | list[tuple[PushButton, Callable]]):
+    def addTexts(self, contents: list[tuple[str, Literal["title", "subtitle", "body", "badge"], str, str]]):
+        layout = QHBoxLayout()
+        for content in contents:
+            layout.addWidget(self.addText(*content))
+
+
+    def addButton(self, button: PushButton | list[tuple[PushButton, Callable]], func: Callable = None):
         if isinstance(button, PushButton):
             self.right_layout.addWidget(button)
+            if func is not None:
+                button.clicked.connect(func)
+            
+            return button
+
         elif isinstance(button, list):
             button_layout = QHBoxLayout()
+
+            return_data = []
 
             for btn, func in button:
                 btn.clicked.connect(func)
                 button_layout.addWidget(btn)
+                return_data.append(btn)
 
             self.right_layout.addLayout(button_layout)
+
+            return return_data
 
         else:
             raise TypeError("button must be a PushButton or a list of (PushButton, Callable)")
 
 
-class ItemCard(CardWidget):
+class SearchCard(ItemCard):
     def __init__(self,
                 id: int,
                 title: str,
@@ -93,12 +112,13 @@ class ItemCard(CardWidget):
                 is_real: bool, 
                 pdf_file: str,
                 word_file: str,
-                config,
                 full_info: dict,
+                config,
+                logger,
                 parent=None
                 ):
         
-        
+        super().__init__(config, logger, parent)
 
         self.id = id
         self.title = title
@@ -114,68 +134,36 @@ class ItemCard(CardWidget):
         self.config = config
         self.full_info = full_info
         
-        super().__init__(parent)
+        self.parent_ = parent
+       
         
-        h_layout = QHBoxLayout()
-        self.setLayout(h_layout)
 
-        left_layout = QVBoxLayout()
-        left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.addText(title, "title", stylesheet="font-size: 16px;")
+        self.addText(f"下载量：{download} 浏览量：{view}", "body")
+        self.addText(f"作者：{author} 上传时间：{upload_time}", "body")
 
-        h_layout.addLayout(left_layout)
-
-        title = TitleLabel(title)
-        title.setStyleSheet("font-size: 16px;")
-        left_layout.addWidget(title)
-        left_layout.addWidget(BodyLabel(f"下载量：{download} 浏览量：{view}"))
-        left_layout.addWidget(BodyLabel(f"作者：{author} 上传时间：{upload_time}"))
-
-        hot_label = InfoBadge.custom("热门", "#FE143B", "#FE143B")
-        real_label = InfoBadge.custom("真题", "#FF9D37", "#FF9D37")
-
-        info_layout = QHBoxLayout()
-        info_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
+        badges = []
         if is_hot:
-            info_layout.addWidget(hot_label, alignment=Qt.AlignmentFlag.AlignLeft)
-        if is_real:
-            info_layout.addWidget(real_label, alignment=Qt.AlignmentFlag.AlignLeft)
-        left_layout.addLayout(info_layout)
-
-
-        right_layout = QVBoxLayout()
-        right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
-        h_layout.addLayout(right_layout)
-
+            badges.append(("热门", "badge", "#FE143B", ""))
         
-        self.download_pdf_button = PushButton(FIF.DOWNLOAD, "下载PDF文件")
-        self.download_pdf_button.clicked.connect(self.downloadPdf)
-        if pdf_file == "":
-            self.download_pdf_button.setEnabled(False)
-        right_layout.addWidget(self.download_pdf_button)
+        if is_real:
+            badges.append(("真实", "badge", "#00BFFF", ""))
 
-        self.download_word_button = PushButton(FIF.DOWNLOAD, "下载Word文件")
-        self.download_word_button.clicked.connect(self.downloadWord)
-        if word_file == "":
-            self.download_word_button.setEnabled(False)
-        right_layout.addWidget(self.download_word_button)
+        self.addTexts(badges)
 
-        view_layout = QHBoxLayout()
-        right_layout.addLayout(view_layout)
+        self.download_pdf_button = self.addButton(PushButton(FIF.DOWNLOAD, "下载PDF文件"), self.downloadPdf)
+        self.download_word_button = self.addButton(PushButton(FIF.DOWNLOAD, "下载Word文件"), self.downloadWord)
+        
+        self.addButton([
+            (PushButton(FIF.CLOUD, "查看网页"), self.viewWeb),
+            (PushButton(FIF.DOCUMENT, "预览网页"), self.viewPdf)
+        ])
 
-        self.view_web_button = PushButton(FIF.CLOUD, "查看网页")
-        self.view_web_button.clicked.connect(self.viewWeb)
-        view_layout.addWidget(self.view_web_button)
-
-        self.view_pdf_button = PushButton(FIF.DOCUMENT, "预览网页")
-        self.view_pdf_button.clicked.connect(self.viewPdf)
-        view_layout.addWidget(self.view_pdf_button)
-
-        self.collect_button = TogglePushButton(FIF.HEART, "收藏")
-        self.collect_button.clicked.connect(self.collectButton)
-        right_layout.addWidget(self.collect_button)
+        self.collect_button = self.addButton(TogglePushButton(FIF.HEART, "收藏"), self.collectButton)
 
         self.refreshButton()
+
+
 
     def downloadPdf(self):
         # print(self._parent)
@@ -252,6 +240,7 @@ class ItemCard(CardWidget):
 
         self.config.set(CONFIG_COLLECTS, collects)
 
+
 class SettingCard(CardWidget):
     def __init__(self, icon, title:str, content:str, actions:list[QWidget], action_layout_type:Literal["h_layout", "v_layout"]="h_layout",parent=None):
         super().__init__(parent)
@@ -301,7 +290,7 @@ class SettingCard(CardWidget):
         self.setLayout(h_layout)
 
 
-class PreferredCard(CardWidget):
+class PreferredCard(ItemCard):
     def __init__(self,
                  id: int,
                  title: str,
@@ -320,7 +309,7 @@ class PreferredCard(CardWidget):
                  parent=None
                  ):
         
-        super().__init__(parent)
+        super().__init__(config, logger, parent)
         
         self.id = id
         self.title = title 
@@ -383,88 +372,44 @@ class PreferredCard(CardWidget):
         self.worker.start()
 
     def initUi(self):
-        h_layout = QHBoxLayout()
-        self.setLayout(h_layout)
+        self.addText(self.title, "title", stylesheet="font-size: 16px;")
+        self.addText(f"{self.grade} {self.subject} {self.year} {self.type}")
+        self.addText(f"下载量：{self.download} 浏览量：{self.view}")
+        self.addText(f"上传时间：{self.upload_time}")
 
-        left_layout = QVBoxLayout()
-        left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        price_label = self.addText(self.updatePrice(), stylesheet="font-size: 16px; color: #fe690e;")
 
-        h_layout.addLayout(left_layout)
+        hot_label = self.addText("热门", "badge", "#FE143B")
+        hot_label.hide()
 
-        title = TitleLabel(self.title)
-        title.setStyleSheet("font-size: 16px;")
-        left_layout.addWidget(title)
+        self.download_pdf_button = self.addButton(PushButton(FIF.DOWNLOAD, "下载PDF文件"), self.downloadPdf)
+        self.download_word_button = self.addButton(PushButton(FIF.DOWNLOAD, "下载Word文件"), self.downloadWord)
 
-        left_layout.addWidget(BodyLabel(f"{self.grade} {self.subject} {self.year} {self.type}"))
-        left_layout.addWidget(BodyLabel(f"下载量：{self.download} 浏览量：{self.view}"))
-        left_layout.addWidget(BodyLabel(f"上传时间：{self.upload_time}"))
+        self.view_web_button, self.view_pdf_button =self.addButton([
+            (PushButton(FIF.CLOUD, "查看网页"), self.viewWeb),
+            (PushButton(FIF.DOCUMENT, "预览网页"), self.viewPdf),
+        ])
 
-        price_label = BodyLabel(self.updatePrice())
-        price_label.setStyleSheet("font-size: 16px; color: #fe690e;")
-        
-        left_layout.addWidget(price_label)
-
-        hot_label = InfoBadge.custom("热门", "#FE143B", "#FE143B")
-        
-
-        info_layout = QHBoxLayout()
-        info_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        if self.is_hot:
-            info_layout.addWidget(hot_label, alignment=Qt.AlignmentFlag.AlignLeft)
-        left_layout.addLayout(info_layout)
-
-
-        right_layout = QVBoxLayout()
-        right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
-        h_layout.addLayout(right_layout)
-
-        
-        self.download_pdf_button = PushButton(FIF.DOWNLOAD, "下载PDF文件")
-        self.download_pdf_button.clicked.connect(self.downloadPdf)
-        self.download_pdf_button.hide()
-        right_layout.addWidget(self.download_pdf_button)
-
-        self.download_word_button = PushButton(FIF.DOWNLOAD, "下载Word文件")
-        self.download_word_button.clicked.connect(self.downloadWord)
-        self.download_word_button.hide()
-        right_layout.addWidget(self.download_word_button)
-
-        view_layout = QHBoxLayout()
-        right_layout.addLayout(view_layout)
-
-        self.view_web_button = PushButton(FIF.CLOUD, "查看网页")
-        self.view_web_button.clicked.connect(self.viewWeb)
-        self.view_web_button.hide()
-        view_layout.addWidget(self.view_web_button)
-
-        self.view_pdf_button = PushButton(FIF.DOCUMENT, "预览网页")
-        self.view_pdf_button.clicked.connect(self.viewPdf)
-        self.view_pdf_button.hide()
-        view_layout.addWidget(self.view_pdf_button)
-
-        self.collect_button = TogglePushButton(FIF.HEART, "收藏")
-        self.collect_button.clicked.connect(self.collectButton)
-        self.collect_button.hide()
-        right_layout.addWidget(self.collect_button)
+        self.collect_button = self.addButton(PushButton(FIF.HEART, "收藏"), self.collectButton)
 
         self.loading = IndeterminateProgressRing()
         self.loading.setFixedSize(45, 45)
-        right_layout.addWidget(self.loading)
+        self.right_layout.addWidget(self.loading)
 
         self.error_label = BodyLabel(ERROR_TEXT)
         self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.error_label.setStyleSheet("font-size: 40px;")
         self.error_label.hide()
-        right_layout.addWidget(self.error_label)
+        self.right_layout.addWidget(self.error_label)
 
         self.error_info_label = BodyLabel("出错了，请重试")
         self.error_info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.error_info_label.setStyleSheet("font-size: 20px;")
         self.error_info_label.hide()
-        right_layout.addWidget(self.error_info_label)
+        self.right_layout.addWidget(self.error_info_label)
 
         self.refreshButton()
+
     
     def showButton(self):
         self.download_pdf_button.show()
@@ -507,7 +452,7 @@ class PreferredCard(CardWidget):
                 duration=INFO_BAR_DURATION
             )
         elif os.path.exists(f"{FILE_PATH}{self.title}.pdf"):
-            os.system(f'{FILE_PATH}{self.title}.pdf"')
+            os.system(f'"{FILE_PATH}{self.title}.pdf"')
         else:
             download_file(f"{DOWNLOAD_URL}{self.pdf_file}", f"{FILE_PATH}{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
             self.download_pdf_button.setText("查看PDF文件")
@@ -525,7 +470,7 @@ class PreferredCard(CardWidget):
 
             )
         elif os.path.exists(f"{FILE_PATH}{self.title}.docx"):
-            os.system(f'"{FILE_PATH}{self.title}.docx')
+            os.system(f'"{FILE_PATH}{self.title}.docx"')
         else:
             download_file(f"{DOWNLOAD_URL}{self.word_file}", f"data/files/{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
             self.download_word_button.setText("查看Word文件")
