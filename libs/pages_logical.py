@@ -82,6 +82,7 @@ class SearchPage(SearchPage):
                 is_hot, is_real,
                 pdf_file, word_file,
                 self.config,
+                item,
                 self 
             ))
     
@@ -521,6 +522,7 @@ class Preferred(Preferred):
                         True if item["is_hot"] == 1 else False,
                         self.config,
                         self.logger,
+                        item,
                         self
                     )
                     self.content_data_layout.addWidget(item_widget)
@@ -618,21 +620,5 @@ class AccountPage(AccountPage):
         self.changeText()
         self.changeToken()
 
-                
 
-   
-
-
-
-        
-        
-
-
-
-                
-                
-
-
-
-        
 

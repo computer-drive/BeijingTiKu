@@ -1,5 +1,6 @@
 import os
 from libs.worker import download_file, GetPreferredInfoWorker
+from libs.cached import cachePapersInfo, cachePreferredInfo
 from qfluentwidgets import (CardWidget, TitleLabel, BodyLabel, InfoBadge, InfoBar, IconWidget,
                              PushButton, TogglePushButton, InfoBarPosition, CaptionLabel,
                              IndeterminateProgressRing
@@ -24,6 +25,7 @@ class ItemCard(CardWidget):
                 pdf_file: str,
                 word_file: str,
                 config,
+                full_info: dict,
                 parent=None
                 ):
         
@@ -41,7 +43,8 @@ class ItemCard(CardWidget):
         self.word_file = word_file
         self._parent = parent
         self.config = config
-                        
+        self.full_info = full_info
+        
         super().__init__(parent)
         
         h_layout = QHBoxLayout()
@@ -174,6 +177,8 @@ class ItemCard(CardWidget):
             self.collect_button.setText("收藏")
         else:
             collects.append(item)
+            cachePapersInfo([self.full_info])
+
             self.collect_button.setText("取消收藏")
 
         self.config.set(CONFIG_COLLECTS, collects)
@@ -242,6 +247,7 @@ class PreferredCard(CardWidget):
                  is_hot: bool,
                  config,
                  logger, 
+                 full_info: dict,
                  parent=None
                  ):
         
@@ -258,6 +264,7 @@ class PreferredCard(CardWidget):
         self.grade = grade 
         self.type = type 
         self.is_hot = is_hot 
+        self.full_info = full_info
 
         self.pdf_file = ""
         self.word_file = ""
@@ -488,6 +495,8 @@ class PreferredCard(CardWidget):
             self.collect_button.setText("收藏")
         else:
             collects.append(item)
+            cachePreferredInfo([self.full_info])
+
             self.collect_button.setText("取消收藏")
 
         self.config.set(CONFIG_COLLECTS, collects)
