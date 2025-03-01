@@ -1,8 +1,8 @@
 import os
-import sys
 from datetime import datetime
 from .log import create_logger
 from .consts import *
+from .cached import initCacheFile
 from utility.config import JsonConfig
 from PyQt5.QtWidgets import QApplication
 from .pages import MainWindow
@@ -12,6 +12,8 @@ class BeijingTiku:
         
         self.logger = self.createLogger()
         self.config = self.loadConfig()
+
+        self.logger.info("Initializing application")
 
     def createLogger(self):
         now = datetime.now() # 获取当前时间
@@ -31,13 +33,20 @@ class BeijingTiku:
                 self.logger.warning(f"Dependency path {path} not found, creating...")
                 os.mkdir(path)
 
+        initCacheFile()
+
+        
+
     def run(self):
+        self.prepare()
 
         self.app = QApplication([])
+
 
         self.mainWindow = MainWindow(self.config, self.logger)
         self.mainWindow.show()
 
+        self.logger.info("Application running.")
 
         result = self.app.exec_()
         self.logger.info(f"Application exited with code {result}")
