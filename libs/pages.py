@@ -8,7 +8,7 @@ from PyQt5.QtGui import QIcon
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton, MessageBoxBase,
                             PrimaryPushButton, IndeterminateProgressBar,  ProgressBar, TitleLabel,
                             SwitchButton, SingleDirectionScrollArea, SmoothMode, IndeterminateProgressRing,
-                            BodyLabel, LargeTitleLabel, CaptionLabel, SubtitleLabel, FluentWindow,
+                            BodyLabel, LargeTitleLabel, CaptionLabel, FluentWindow,
                             NavigationItemPosition, TreeWidget, CardWidget, GroupHeaderCardWidget
                             )
 from qfluentwidgets import FluentIcon as FIF
@@ -67,7 +67,7 @@ class SearchPage(QFrame):
         args_layout.addWidget(self.stage_input)
 
         self.subject_input = ComboBox()
-        self.subject_input.addItems(SEARCH_STATE)
+        self.subject_input.addItems(SEARCH_SUBJECT)
         args_layout.addWidget(self.subject_input)
 
         args_layout.addWidget(BodyLabel("年级:"))
@@ -154,6 +154,7 @@ class Preferred(QFrame):
         v_layout.addLayout(self.initContent())
 
         self.page_layout = QHBoxLayout()
+        self.page_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         v_layout.addLayout(self.page_layout)
         
         self.page_back_button = ToolButton(FIF.LEFT_ARROW)
@@ -562,7 +563,7 @@ class AccountPage(QFrame):
         self.name_label.setText(name)
         self.phone_label.setText(f"{phone_str} {vip_str}")
 
-   
+
 class ProgressWindow(MessageBoxBase):
     def __init__(self, content: str, parent=None):
         super().__init__(parent)
