@@ -8,13 +8,14 @@ from PyQt5.QtGui import QIcon
 from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton, MessageBoxBase,
                             PrimaryPushButton, IndeterminateProgressBar,  ProgressBar, TitleLabel,
                             SwitchButton, SingleDirectionScrollArea, SmoothMode, IndeterminateProgressRing,
-                            BodyLabel, LargeTitleLabel, CaptionLabel, FluentWindow,
+                            BodyLabel, LargeTitleLabel, CaptionLabel, FluentWindow, Pivot, SubtitleLabel,
                             NavigationItemPosition, TreeWidget, CardWidget, GroupHeaderCardWidget
                             )
 from qfluentwidgets import FluentIcon as FIF
 
+print("Initiating <Moudle> libs.pages")
 
-    
+print("    -<Class> SearchPage") 
 class SearchPage(QFrame):
     def __init__(self, config, parent=None): 
 
@@ -133,7 +134,7 @@ class SearchPage(QFrame):
         self.page_forward_button.setToolTip("下一页")
         self.page_layout.addWidget(self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter)
         
-
+print("    -<Class> Preferred") 
 class Preferred(QFrame):
     def __init__(self, config, parent=None):
         super().__init__(parent)
@@ -263,20 +264,103 @@ class Preferred(QFrame):
         self.null_label.setStyleSheet("font-size: 20px;")
         self.content_data_layout.addWidget(self.null_label, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
 
-    
-class LocalPage(QFrame):
-    def __init__(self, parent=None):
+print("    -<Class> LocalCollectSubPage") 
+class LocalCollectSubPage(QWidget):
+    def __init__(self, config, parent=None):
         super().__init__(parent)
 
-        v_layout = QVBoxLayout()
-        v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.config = config
 
-        # 本地窗口-标题
-        v_layout.addWidget(LargeTitleLabel("本地"))
+        v_layout  = QVBoxLayout()
+
+        v_layout.addWidget(SubtitleLabel("收藏"))
 
         self.setLayout(v_layout)
 
+    def onShow(self):
+        pass
 
+print("    -<Class> LocalDownloadSubPage") 
+class LocalDownloadSubPage(QWidget):
+    # TODO: 获取所有下载内容，并显示
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        v_layout  = QVBoxLayout()
+
+        v_layout.addWidget(SubtitleLabel("下载"))
+
+        self.setLayout(v_layout)
+
+print("    -<Class> LocalSearchSubPage") 
+class LocalHistorySubPage(QWidget):
+    # TODO: 获取所有历史记录，并显示
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        v_layout  = QVBoxLayout()
+
+        v_layout.addWidget(SubtitleLabel("历史"))
+
+        self.setLayout(v_layout)
+
+print("    -<Class> LocalHistorySubPage") 
+class LocalPage(QFrame):
+    def __init__(self, config, logger, parent=None):
+        super().__init__(parent)
+
+        self.config = config
+        self.logger = logger
+
+        self.pages: dict[str, QWidget] = {
+            "Collects": LocalCollectSubPage(config, self),
+            "Downloads": LocalDownloadSubPage(self),
+            "History": LocalHistorySubPage(self),
+        }
+
+        v_layout = QVBoxLayout()
+        self.v_layout = v_layout
+        v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.setLayout(v_layout)
+
+        v_layout.addWidget(LargeTitleLabel("本地"))
+
+        self.pivot = Pivot()
+        self.pivot.addItem("CollectsPage", "收藏", lambda: self.changePage("Collects"))
+        self.pivot.addItem("DownloadsPage", "下载", lambda: self.changePage("Downloads"))
+        self.pivot.addItem("HistoryPage", "历史", lambda: self.changePage("History"))
+        v_layout.addWidget(self.pivot, 0, Qt.AlignmentFlag.AlignCenter)
+
+
+        self.initPage("Collects")
+
+
+    
+    def initPage(self, default:str):
+        for page, widget in self.pages.items():
+            self.v_layout.addWidget(widget)
+            if page == default:
+                widget.show() 
+            else:
+                widget.hide()
+
+                
+
+    def changePage(self, name):
+
+        if name not in self.pages:
+            raise ValueError("Page not found")
+        else:
+            for page, widget in self.pages.items():
+                if widget is not None:
+                    if page == name:
+                        widget.show()
+                    else:
+                        widget.hide()
+        
+
+
+print("    -<Class> SettingsPage") 
 class SettingsPage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -374,7 +458,7 @@ class SettingsPage(QFrame):
 
         v_layout.addWidget(self.info_card)
 
-
+print("    -<Class> LoginWindow") 
 class LoginWindow(MessageBoxBase):
     def __init__(self, config, logger, parent=None):
         super().__init__(parent)
@@ -432,7 +516,7 @@ class LoginWindow(MessageBoxBase):
 
         self.qrcode_label.clear()
 
-
+print("    -<Class> AccountPage") 
 class AccountPage(QFrame):
     def __init__(self, config, logger, parent=None):
         super().__init__(parent)
@@ -563,7 +647,7 @@ class AccountPage(QFrame):
         self.name_label.setText(name)
         self.phone_label.setText(f"{phone_str} {vip_str}")
 
-
+print("    -<Class> ProgressWindow") 
 class ProgressWindow(MessageBoxBase):
     def __init__(self, content: str, parent=None):
         super().__init__(parent)
@@ -603,7 +687,7 @@ class ProgressWindow(MessageBoxBase):
 
         self.progress.setValue(progress)
 
-
+print("    -<Class> LoadingWindow") 
 class LoadingWindow(MessageBoxBase):
     def __init__(self, title:str, content:str, parent=None):
         super().__init__(parent)
@@ -627,7 +711,7 @@ class LoadingWindow(MessageBoxBase):
         self.buttonGroup.deleteLater()
         self.buttonLayout.deleteLater()
 
-
+print("    -<Class> MainWindow") 
 class MainWindow(FluentWindow):
     def __init__(self, config, logger):
         super().__init__()
@@ -645,7 +729,7 @@ class MainWindow(FluentWindow):
         self.preferredInterface = logical.Preferred(config, logger, self)
         self.preferredInterface.setObjectName("preferredInterface")
 
-        self.localInterface = logical.LocalPage(self)
+        self.localInterface = logical.LocalPage(config, logger, self)
         self.localInterface.setObjectName("localInterface")
 
         self.settingInterface = logical.SettingsPage(self)

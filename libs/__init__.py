@@ -7,6 +7,8 @@ from utility.config import JsonConfig
 from PyQt5.QtWidgets import QApplication
 from .pages import MainWindow
 
+print("Initiating <Moudle> libs.__init__")
+print(f"    -<Class> BeijingTiku")
 class BeijingTiku:
     def __init__(self):
         

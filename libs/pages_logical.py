@@ -1,7 +1,7 @@
 from libs.pages import (SearchPage, Preferred, LocalPage,
                         SettingsPage, LoadingWindow,
                          AccountPage,)
-from libs.widgets import ItemCard, PreferredCard
+from libs.widgets import SearchCard, PreferredCard
 from libs.worker import (SearchWorker, GetCategoryWorker,
                           GetPointsWorker, GetPapersListWorker, LoginWorker)
 from qfluentwidgets import InfoBar, MessageBox
@@ -12,6 +12,9 @@ from datetime import datetime
 from libs.consts import *
 import os 
 
+print("Initiating: <Moudle> libs.pages_logical")
+
+print(f"    -<Function> _layout_clear")
 def _layout_clear(layout):
     while layout.count():
         item = layout.takeAt(0)
@@ -21,7 +24,7 @@ def _layout_clear(layout):
         else:
             _layout_clear(item.layout())
 
-
+print("    -<Class> SearchPage")
 class SearchPage(SearchPage):
     def __init__(self, config, logger, parent=None):
         super().__init__(config, parent)
@@ -75,14 +78,15 @@ class SearchPage(SearchPage):
             else:
                 word_file = item["word_answer"]
 
-            self.content_data.content_layout.addWidget(ItemCard(
+            self.content_data.content_layout.addWidget(SearchCard(
                 item["id"], item["store_name"],
                 item["browse"], item["upload_num"],
                 item["upload_people"], item["add_time"],
                 is_hot, is_real,
                 pdf_file, word_file,
-                self.config,
                 item,
+                self.config,
+                self.logger,
                 self 
             ))
     
@@ -180,7 +184,7 @@ class SearchPage(SearchPage):
             self.searchWorker.finished.connect(finished)
             self.searchWorker.start()
 
-
+print("    -<Class> Preferred")
 class Preferred(Preferred):
 
     def __init__(self, config, logger, parent=None):
@@ -541,7 +545,7 @@ class Preferred(Preferred):
 
         self.search_worker.start()
 
-
+print("    -<Class> AccountPage")
 class AccountPage(AccountPage):
     def __init__(self, config, logger, parent=None):
         super().__init__(config, logger, parent)

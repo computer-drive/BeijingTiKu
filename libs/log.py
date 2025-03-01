@@ -6,6 +6,9 @@ from libs.consts import *
 from utility.ansi import fore, back, style
 import inspect
 
+print("Initiating <Moudle> libs.log")
+
+print(f"    -<Class> LogFormatter")
 class LogFormatter(colorlog.ColoredFormatter):
     def format(self, record):
 
@@ -46,7 +49,7 @@ class LogFormatter(colorlog.ColoredFormatter):
 
     
     
-
+print(f"    -<Function> create_logger")
 def create_logger(name:str = "",
                   level:int = logging.INFO,
                   format:str = LOGGER_FORMAT ,

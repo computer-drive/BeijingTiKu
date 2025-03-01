@@ -63,7 +63,10 @@ SEARCH_NULL_TEXT = "(>_<)"
 PAPERS_DEFAULT_LIMIT = 20
 PREFERRED_DEFAULT_LIMIT = 10
 
-# urls
+# Local Page Info
+TAB_TEXT = ["收藏", "下载", "历史"]
+
+# Urls
 DOWNLOAD_URL = "https://jsb2022-1253627302.cos.ap-beijing.myqcloud.com"
 WEB_URL = "https://www.jingshibang.com/home/detailPaper/"
 SEARCH_PAPER_URL = "https://www.jingshibang.com/api/products"
@@ -75,7 +78,7 @@ GET_PREFERRED_URL = "https://www.jingshibang.com/api/product/detail/"
 
 
 
-# requests
+# Requests
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
 HEADERS = {
@@ -84,7 +87,7 @@ HEADERS = {
 
 DEFAULT_TIMEOUT = 10
 
-# others
+# Others
 WINDOW_TITLE = APP_NAME
 
 ERROR_TEXT = "(⊙x⊙;)"

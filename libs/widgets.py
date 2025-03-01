@@ -11,9 +11,11 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QSizePolicy
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from typing import Literal
-
 from libs.consts import *
 
+print("Initiating <Moudle> libs.widgets")
+
+print(f"    -<Class> CardBase")
 class CardBase(CardWidget):
     def __init__(self, left: QWidget, right: QWidget, config, logger, parent=None):
         super().__init__(parent)
@@ -33,6 +35,7 @@ class CardBase(CardWidget):
 
         self.setLayout(h_layout)
 
+print(f"    -<Class> ItemCard")
 class ItemCard(CardBase):
     def __init__(self, config, logger, parent=None):
         super().__init__( QWidget(), QWidget(), config, logger, parent)
@@ -99,7 +102,7 @@ class ItemCard(CardBase):
         else:
             raise TypeError("button must be a PushButton or a list of (PushButton, Callable)")
 
-
+print(f"    -<Class> SearchCard")
 class SearchCard(ItemCard):
     def __init__(self,
                 id: int,
@@ -240,7 +243,7 @@ class SearchCard(ItemCard):
 
         self.config.set(CONFIG_COLLECTS, collects)
 
-
+print(f"    -<Class> SearchCard")
 class SettingCard(CardWidget):
     def __init__(self, icon, title:str, content:str, actions:list[QWidget], action_layout_type:Literal["h_layout", "v_layout"]="h_layout",parent=None):
         super().__init__(parent)
@@ -289,7 +292,7 @@ class SettingCard(CardWidget):
 
         self.setLayout(h_layout)
 
-
+print(f"    -<Class> PreferredCard")
 class PreferredCard(ItemCard):
     def __init__(self,
                  id: int,
@@ -515,6 +518,7 @@ class PreferredCard(ItemCard):
 
         self.config.set(CONFIG_COLLECTS, collects)
 
+print(f"    -<Class> MaterialIcon")
 class MaterialIcon(QIcon):
     def __init__(self, name: str, width: int = 32, height: int = 32):
         if os.path.exists(f"{ICON_PATH}{name}.svg"):

@@ -10,8 +10,9 @@ from libs.consts import *
 
 download_count = 0
 
+print("Initiating <Moudle> libs.worker")
 
-
+print(f"    -<Function> get_data")
 def get_data(url, args=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type:Literal["json", "text", "bytes", "response"]="json"):
     
     try:
@@ -32,7 +33,8 @@ def get_data(url, args=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type
 
     except Exception as e:
         return (False, e)
-    
+
+print(f"    -<Function> post_data")
 def post_data(url, data=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type:Literal["json", "text", "bytes", "response"]="json"):
 
 
@@ -63,7 +65,7 @@ def get_total(args):
         return data["data"][0]["count"]
     else:
         return 0
-
+print(f"    -<Class> RequestsWorker")
 class RequestsWorker(QThread):
     finished = pyqtSignal(tuple)
 
@@ -80,7 +82,7 @@ class RequestsWorker(QThread):
 
         return (status, data)
 
-
+print(f"    -<Class> SearchWorker")
 class SearchWorker(RequestsWorker):
     def __init__(self, keyword, subject, grade, type, time, place, page, limit=20, get_total=False):
         self.args = {
@@ -108,6 +110,7 @@ class SearchWorker(RequestsWorker):
         else:
             self.finished.emit((status, data["data"], 0))
 
+print(f"    -<Class> Downloader")
 class Downloader(QThread):
     finished = pyqtSignal(tuple)
     update = pyqtSignal(tuple)
@@ -154,7 +157,7 @@ class Downloader(QThread):
 
 
         # print(self.progress.value())
-
+print(f"    -<Function> download_file")
 def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=None):
     from libs.pages import ProgressWindow
 
@@ -195,7 +198,7 @@ def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=Non
 
     progress_window.show()
 
-
+print(f"    -<Class> GetCategoryWorker")
 class GetCategoryWorker(RequestsWorker):
 
     def __init__(self):
@@ -209,6 +212,7 @@ class GetCategoryWorker(RequestsWorker):
         else:
             self.finished.emit((False, data))
 
+print(f"    -<Class> GetPointsWorker")
 class GetPointsWorker(RequestsWorker):
     
     def __init__(self, pid):
@@ -226,6 +230,7 @@ class GetPointsWorker(RequestsWorker):
 
         self.finished.emit((status, data, self.pid))
 
+print(f"    -<Class> GetPapersListWorker")
 class GetPapersListWorker(RequestsWorker):
 
     def __init__(self, page, subject, grade, limit=10, logger=None):
@@ -315,6 +320,7 @@ class GetPapersListWorker(RequestsWorker):
         
         self.finished.emit((status, data))
 
+print(f"    -<Class> LoginWorker")
 class LoginWorker(QThread):
     got_qrcode = pyqtSignal(bytes)
     logined = pyqtSignal(tuple)
@@ -417,6 +423,7 @@ class LoginWorker(QThread):
         else:
             self.error.emit(("avator", data))
 
+print(f"    -<Class> GetPreferredInfoWorker")
 class GetPreferredInfoWorker(RequestsWorker):
     finished = pyqtSignal(tuple)
 
