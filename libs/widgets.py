@@ -1,16 +1,85 @@
+from typing import Callable
 import os
 from libs.worker import download_file, GetPreferredInfoWorker
 from libs.cached import cachePapersInfo, cachePreferredInfo
 from qfluentwidgets import (CardWidget, TitleLabel, BodyLabel, InfoBadge, InfoBar, IconWidget,
                              PushButton, TogglePushButton, InfoBarPosition, CaptionLabel,
-                             IndeterminateProgressRing
+                             IndeterminateProgressRing, SubtitleLabel
                             )
 from qfluentwidgets import FluentIcon as FIF
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QSizePolicy
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from typing import Literal
+
 from libs.consts import *
+
+class CardBase(CardWidget):
+    def __init__(self, left: QWidget, right: QWidget, config, logger, parent=None):
+        super().__init__(parent)
+
+        self.config = config
+        self.logger = logger
+
+        self.left_widget = left
+        self.right_widget = right
+
+        h_layout = QHBoxLayout()
+
+        h_layout.addWidget(left)
+
+        h_layout.addWidget(right)
+
+        self.setLayout(h_layout)
+
+class ItemCard(CardBase):
+    def __init__(self, config, logger, parent=None):
+        super().__init__(self, QWidget(), QWidget(), config, logger, parent)
+
+        self.config = config
+        self.logger = logger
+
+        self.left_layout = QVBoxLayout()
+        self.left_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.left_widget.setLayout(self.left_layout)
+
+        self.right_layout = QVBoxLayout()
+        self.right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.right_widget.setLayout(self.right_layout)
+
+
+    def addText(self, content:str, style:Literal["title", "subtitle", "body", "badge"], color:str="", style:str=""):
+        match style:
+            case "title":
+                label = TitleLabel(content)
+            case "subtitle":
+                label = SubtitleLabel(content)
+            case "body":
+                label = BodyLabel(content)
+            case "badge":
+                label = InfoBadge.custom(content, color, color)
+        
+        if style != "":
+            label.setStyleSheet(style)
+
+        self.left_layout.addWidget(label)
+
+
+    def addButton(self, button: PushButton | list[tuple[PushButton, Callable]]):
+        if isinstance(button, PushButton):
+            self.right_layout.addWidget(button)
+        elif isinstance(button, list):
+            button_layout = QHBoxLayout()
+
+            for btn, func in button:
+                btn.clicked.connect(func)
+                button_layout.addWidget(btn)
+
+            self.right_layout.addLayout(button_layout)
+
+        else:
+            raise TypeError("button must be a PushButton or a list of (PushButton, Callable)")
+
 
 class ItemCard(CardWidget):
     def __init__(self,
