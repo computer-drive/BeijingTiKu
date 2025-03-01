@@ -13,7 +13,6 @@ class BeijingTiku:
         self.logger = self.createLogger()
         self.config = self.loadConfig()
 
-        self.logger.info("Initializing application")
 
     def createLogger(self):
         now = datetime.now() # 获取当前时间
