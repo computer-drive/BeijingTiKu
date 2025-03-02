@@ -11,7 +11,7 @@ LOGGER_FORMAT = "%(color)s%(class_name)s %(levelname)s %(message)s%(reset)s"
 CONFIG_PATH = "config.json"
 AVATOR_PATH = "avator.jpg"
 REPORT_PATH = "logs/report/"
-FILE_PATH = "data/files/"
+FILE_PATH = "data\\files\\"
 LOG_PATH = "logs"
 ICON_PATH = "icons/"
 

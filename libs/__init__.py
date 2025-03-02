@@ -5,7 +5,7 @@ from .consts import *
 from .cached import initCacheFile
 from utility.config import JsonConfig
 from PyQt5.QtWidgets import QApplication
-from .pages import MainWindow
+from .pages.main_window import MainWindow
 
 print("Initiating <Moudle> libs.__init__")
 print(f"    -<Class> BeijingTiku")
