@@ -13,9 +13,7 @@ from qfluentwidgets import (PushButton, ComboBox, LineEdit, SpinBox, ToolButton,
                             )
 from qfluentwidgets import FluentIcon as FIF
 
-print("Initiating <Moudle> libs.pages")
 
-print("    -<Class> SearchPage") 
 class SearchPage(QFrame):
     def __init__(self, config, parent=None): 
 
@@ -134,7 +132,7 @@ class SearchPage(QFrame):
         self.page_forward_button.setToolTip("下一页")
         self.page_layout.addWidget(self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter)
         
-print("    -<Class> Preferred") 
+
 class Preferred(QFrame):
     def __init__(self, config, parent=None):
         super().__init__(parent)
@@ -264,7 +262,7 @@ class Preferred(QFrame):
         self.null_label.setStyleSheet("font-size: 20px;")
         self.content_data_layout.addWidget(self.null_label, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
 
-print("    -<Class> LocalCollectSubPage") 
+
 class LocalCollectSubPage(QWidget):
     def __init__(self, config, parent=None):
         super().__init__(parent)
@@ -280,7 +278,7 @@ class LocalCollectSubPage(QWidget):
     def onShow(self):
         pass
 
-print("    -<Class> LocalDownloadSubPage") 
+
 class LocalDownloadSubPage(QWidget):
     # TODO: 获取所有下载内容，并显示
     def __init__(self, parent=None):
@@ -292,7 +290,7 @@ class LocalDownloadSubPage(QWidget):
 
         self.setLayout(v_layout)
 
-print("    -<Class> LocalSearchSubPage") 
+
 class LocalHistorySubPage(QWidget):
     # TODO: 获取所有历史记录，并显示
     def __init__(self, parent=None):
@@ -304,7 +302,7 @@ class LocalHistorySubPage(QWidget):
 
         self.setLayout(v_layout)
 
-print("    -<Class> LocalHistorySubPage") 
+
 class LocalPage(QFrame):
     def __init__(self, config, logger, parent=None):
         super().__init__(parent)
@@ -357,10 +355,8 @@ class LocalPage(QFrame):
                         widget.show()
                     else:
                         widget.hide()
-        
 
 
-print("    -<Class> SettingsPage") 
 class SettingsPage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -458,7 +454,7 @@ class SettingsPage(QFrame):
 
         v_layout.addWidget(self.info_card)
 
-print("    -<Class> LoginWindow") 
+
 class LoginWindow(MessageBoxBase):
     def __init__(self, config, logger, parent=None):
         super().__init__(parent)
@@ -516,7 +512,7 @@ class LoginWindow(MessageBoxBase):
 
         self.qrcode_label.clear()
 
-print("    -<Class> AccountPage") 
+
 class AccountPage(QFrame):
     def __init__(self, config, logger, parent=None):
         super().__init__(parent)
@@ -647,7 +643,7 @@ class AccountPage(QFrame):
         self.name_label.setText(name)
         self.phone_label.setText(f"{phone_str} {vip_str}")
 
-print("    -<Class> ProgressWindow") 
+
 class ProgressWindow(MessageBoxBase):
     def __init__(self, content: str, parent=None):
         super().__init__(parent)
@@ -687,7 +683,7 @@ class ProgressWindow(MessageBoxBase):
 
         self.progress.setValue(progress)
 
-print("    -<Class> LoadingWindow") 
+
 class LoadingWindow(MessageBoxBase):
     def __init__(self, title:str, content:str, parent=None):
         super().__init__(parent)
@@ -711,7 +707,7 @@ class LoadingWindow(MessageBoxBase):
         self.buttonGroup.deleteLater()
         self.buttonLayout.deleteLater()
 
-print("    -<Class> MainWindow") 
+
 class MainWindow(FluentWindow):
     def __init__(self, config, logger):
         super().__init__()

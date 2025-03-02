@@ -13,9 +13,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 from typing import Literal
 from libs.consts import *
 
-print("Initiating <Moudle> libs.widgets")
 
-print(f"    -<Class> CardBase")
 class CardBase(CardWidget):
     def __init__(self, left: QWidget, right: QWidget, config, logger, parent=None):
         super().__init__(parent)
@@ -35,7 +33,7 @@ class CardBase(CardWidget):
 
         self.setLayout(h_layout)
 
-print(f"    -<Class> ItemCard")
+
 class ItemCard(CardBase):
     def __init__(self, config, logger, parent=None):
         super().__init__( QWidget(), QWidget(), config, logger, parent)
@@ -102,8 +100,8 @@ class ItemCard(CardBase):
         else:
             raise TypeError("button must be a PushButton or a list of (PushButton, Callable)")
 
-print(f"    -<Class> SearchCard")
-class SearchCard(ItemCard):
+
+class ResultCard(ItemCard):
     def __init__(self,
                 id: int,
                 title: str,
@@ -118,7 +116,9 @@ class SearchCard(ItemCard):
                 full_info: dict,
                 config,
                 logger,
-                parent=None
+                parent=None,
+                extra:str = "",
+                result_type:Literal["paper", "preferred"] = "paper"
                 ):
         
         super().__init__(config, logger, parent)
@@ -138,14 +138,18 @@ class SearchCard(ItemCard):
         self.full_info = full_info
         
         self.parent_ = parent
-       
+
         
 
         self.addText(title, "title", stylesheet="font-size: 16px;")
         self.addText(f"下载量：{download} 浏览量：{view}", "body")
         self.addText(f"作者：{author} 上传时间：{upload_time}", "body")
 
+        if extra:
+            self.addText(extra, "body")
+
         badges = []
+
         if is_hot:
             badges.append(("热门", "badge", "#FE143B", ""))
         
@@ -157,7 +161,7 @@ class SearchCard(ItemCard):
         self.download_pdf_button = self.addButton(PushButton(FIF.DOWNLOAD, "下载PDF文件"), self.downloadPdf)
         self.download_word_button = self.addButton(PushButton(FIF.DOWNLOAD, "下载Word文件"), self.downloadWord)
         
-        self.addButton([
+        self.view_web_button, self.view_pdf_button = self.addButton([
             (PushButton(FIF.CLOUD, "查看网页"), self.viewWeb),
             (PushButton(FIF.DOCUMENT, "预览网页"), self.viewPdf)
         ])
@@ -165,6 +169,89 @@ class SearchCard(ItemCard):
         self.collect_button = self.addButton(TogglePushButton(FIF.HEART, "收藏"), self.collectButton)
 
         self.refreshButton()
+
+        if result_type == "preferred":
+            self.loading = IndeterminateProgressRing()
+            self.loading.setFixedSize(45, 45)
+            self.right_layout.addWidget(self.loading)
+
+            self.error_label = BodyLabel(ERROR_TEXT)
+            self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.error_label.setStyleSheet("font-size: 40px;")
+            self.error_label.hide()
+            self.right_layout.addWidget(self.error_label)
+
+            self.error_info_label = BodyLabel("出错了，请重试")
+            self.error_info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.error_info_label.setStyleSheet("font-size: 20px;")
+            self.error_info_label.hide()
+            self.right_layout.addWidget(self.error_info_label)
+
+            self.initWorker()
+
+            self.download_pdf_button.hide()
+            self.download_word_button.hide()
+            self.view_web_button.hide()
+            self.view_pdf_button.hide()
+            self.collect_button.hide()
+
+    def workerFinished(self, data):
+        self.logger.info(f"Got preferred info(id:{self.id}) success.")
+
+        if data[0]:
+            
+            if data[1]["storeInfo"]["pdf_paper"] == "":
+                if data[1]["storeInfo"]["pdf_answer"] == "":
+                    self.download_pdf_button.setEnabled(False)
+                    self.view_pdf_button.setEnabled(False)
+                else:
+                    self.pdf_file = data[1]["storeInfo"]["pdf_answer"]
+            else:
+                self.pdf_file = data[1]["storeInfo"]["pdf_paper"]
+
+
+            if data[1]["storeInfo"]["word_paper"] == "":    
+                if data[1]["storeInfo"]["word_answer"] == "":
+                    self.download_word_button.setEnabled(False)
+                else:
+                    self.word_file = data[1]["storeInfo"]["word_answer"]
+            else:
+                self.word_file = data[1]["storeInfo"]["word_paper"]
+
+            self.showButton()
+            
+        else:
+            self.showError("出现错误")
+    
+    def initWorker(self):
+        self.worker = GetPreferredInfoWorker(self.id, self.config, self.logger)
+
+        self.worker.finished.connect(self.workerFinished)
+
+        self.worker.start()
+
+    def showButton(self):
+        self.download_pdf_button.show()
+        self.download_word_button.show()
+        self.view_web_button.show()
+        self.view_pdf_button.show()
+        self.collect_button.show()
+        self.loading.hide()
+
+    def showError(self, info):
+
+        self.download_pdf_button.hide()
+        self.download_word_button.hide()
+        self.view_web_button.hide()
+        self.view_pdf_button.hide()
+        self.collect_button.hide()
+        self.loading.hide()
+
+        self.error_label.show()
+        self.error_info_label.show()
+
+        self.error_info_label.setText(info)
+
 
 
 
@@ -181,7 +268,7 @@ class SearchCard(ItemCard):
                 duration=INFO_BAR_DURATION
             )
         elif os.path.exists(f"{FILE_PATH}{self.title}.pdf"):
-            os.system(f"start {FILE_PATH}/{self.title}.pdf")
+            os.system(f"start '{FILE_PATH}/{self.title}.pdf'")
         else:
             download_file(f"{DOWNLOAD_URL}{self.pdf_file}", f"{FILE_PATH}{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
             self.download_pdf_button.setText("查看PDF文件")
@@ -198,7 +285,7 @@ class SearchCard(ItemCard):
                 duration=INFO_BAR_DURATION
             )
         elif os.path.exists(f"{FILE_PATH}{self.title}.docx"):
-            os.system(f"start {FILE_PATH}{self.title}.docx")
+            os.system(f"start '{FILE_PATH}{self.title}.docx'")
         else:
             download_file(f"{DOWNLOAD_URL}{self.word_file}", f"{FILE_PATH}{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
             self.download_word_button.setText("查看Word文件")
@@ -243,7 +330,7 @@ class SearchCard(ItemCard):
 
         self.config.set(CONFIG_COLLECTS, collects)
 
-print(f"    -<Class> SearchCard")
+
 class SettingCard(CardWidget):
     def __init__(self, icon, title:str, content:str, actions:list[QWidget], action_layout_type:Literal["h_layout", "v_layout"]="h_layout",parent=None):
         super().__init__(parent)
@@ -292,7 +379,7 @@ class SettingCard(CardWidget):
 
         self.setLayout(h_layout)
 
-print(f"    -<Class> PreferredCard")
+
 class PreferredCard(ItemCard):
     def __init__(self,
                  id: int,
@@ -518,7 +605,7 @@ class PreferredCard(ItemCard):
 
         self.config.set(CONFIG_COLLECTS, collects)
 
-print(f"    -<Class> MaterialIcon")
+
 class MaterialIcon(QIcon):
     def __init__(self, name: str, width: int = 32, height: int = 32):
         if os.path.exists(f"{ICON_PATH}{name}.svg"):

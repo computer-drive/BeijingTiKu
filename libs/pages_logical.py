@@ -1,7 +1,7 @@
 from libs.pages import (SearchPage, Preferred, LocalPage,
                         SettingsPage, LoadingWindow,
                          AccountPage,)
-from libs.widgets import SearchCard, PreferredCard
+from libs.widgets import ResultCard
 from libs.worker import (SearchWorker, GetCategoryWorker,
                           GetPointsWorker, GetPapersListWorker, LoginWorker)
 from qfluentwidgets import InfoBar, MessageBox
@@ -12,9 +12,6 @@ from datetime import datetime
 from libs.consts import *
 import os 
 
-print("Initiating: <Moudle> libs.pages_logical")
-
-print(f"    -<Function> _layout_clear")
 def _layout_clear(layout):
     while layout.count():
         item = layout.takeAt(0)
@@ -24,7 +21,7 @@ def _layout_clear(layout):
         else:
             _layout_clear(item.layout())
 
-print("    -<Class> SearchPage")
+
 class SearchPage(SearchPage):
     def __init__(self, config, logger, parent=None):
         super().__init__(config, parent)
@@ -78,7 +75,7 @@ class SearchPage(SearchPage):
             else:
                 word_file = item["word_answer"]
 
-            self.content_data.content_layout.addWidget(SearchCard(
+            self.content_data.content_layout.addWidget(ResultCard(
                 item["id"], item["store_name"],
                 item["browse"], item["upload_num"],
                 item["upload_people"], item["add_time"],
@@ -184,7 +181,7 @@ class SearchPage(SearchPage):
             self.searchWorker.finished.connect(finished)
             self.searchWorker.start()
 
-print("    -<Class> Preferred")
+
 class Preferred(Preferred):
 
     def __init__(self, config, logger, parent=None):
@@ -512,22 +509,31 @@ class Preferred(Preferred):
                     else:
                         is_hot = False
 
-                    item_widget = PreferredCard(
-                        item["id"],
-                        item["store_name"],
-                        item["browse"],
-                        item["upload_num"],
-                        item["add_time"],
-                        float(item["price"]),
-                        item["paper_subject"],
-                        int(item["store_year"]),
-                        item["paper_grade"],
-                        item["paper_type"],
-                        True if item["is_hot"] == 1 else False,
-                        self.config,
-                        self.logger,
-                        item,
-                        self
+                    # item_widget = PreferredCard(
+                    #     item["id"],
+                    #     item["store_name"],
+                    #     item["browse"],
+                    #     item["upload_num"],
+                    #     item["add_time"],
+                    #     float(item["price"]),
+                    #     item["paper_subject"],
+                    #     int(item["store_year"]),
+                    #     item["paper_grade"],
+                    #     item["paper_type"],
+                    #     True if item["is_hot"] == 1 else False,
+                    #     self.config,
+                    #     self.logger,
+                    #     item,
+                    #     self
+                    # )
+                    item_widget = ResultCard(
+                        item["id"], item["store_name"],
+                        item["browse"], item["upload_num"],
+                        "菁师帮", item["add_time"], is_hot,
+                        False, "" , "", 
+                        item, self.config, self.logger, self,
+                        f"{item["paper_subject"]} {item["store_year"]} {item["paper_grade"]} {item["paper_type"]}",
+                        "preferred"
                     )
                     self.content_data_layout.addWidget(item_widget)
 
@@ -545,7 +551,7 @@ class Preferred(Preferred):
 
         self.search_worker.start()
 
-print("    -<Class> AccountPage")
+
 class AccountPage(AccountPage):
     def __init__(self, config, logger, parent=None):
         super().__init__(config, logger, parent)
