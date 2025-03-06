@@ -1,5 +1,5 @@
 from typing import Literal, Callable
-from PyQt5.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout, QPushButton, QToolButton
 from PyQt5.QtCore import Qt
 from qfluentwidgets import (CardWidget, TitleLabel, SubtitleLabel,
                              BodyLabel, InfoBadge, PushButton)
@@ -65,8 +65,8 @@ class ItemCard(CardBase):
             layout.addWidget(self.addText(*content))
 
 
-    def addButton(self, button: PushButton | list[tuple[PushButton, Callable]], func: Callable = None):
-        if isinstance(button, PushButton):
+    def addButton(self, button: QPushButton | QToolButton | list[tuple[PushButton | QToolButton, Callable]], func: Callable = None):
+        if isinstance(button, QPushButton) or isinstance(button, QToolButton):
             self.right_layout.addWidget(button)
             if func is not None:
                 button.clicked.connect(func)
@@ -88,4 +88,4 @@ class ItemCard(CardBase):
             return return_data
 
         else:
-            raise TypeError("button must be a PushButton or a list of (PushButton, Callable)")
+            raise TypeError("button must be QPushButton, QToolButton or list[tuple[QPushButton | QToolButton, Callable]]")
