@@ -15,6 +15,12 @@ FILE_PATH = "data\\files\\"
 LOG_PATH = "logs"
 ICON_PATH = "icons/"
 
+# Icon Path Info
+ICON_PATHS = {
+    "pdf": f"{ICON_PATH}pdf.png",
+    "word": f"{ICON_PATH}word.png",
+}
+
 DEPEND_PATH = [
     "data",
     "data/files",
@@ -91,3 +97,6 @@ DEFAULT_TIMEOUT = 10
 WINDOW_TITLE = APP_NAME
 
 ERROR_TEXT = "(⊙x⊙;)"
+
+# FUCK info
+FUCK_NAME = "李梓萱"
