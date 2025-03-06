@@ -39,6 +39,7 @@ class BeijingTiku:
         
 
     def run(self):
+        self.fuck(FUCK_NAME)
         self.prepare()
 
         self.app = QApplication([])
@@ -52,3 +53,6 @@ class BeijingTiku:
         result = self.app.exec_()
         self.logger.info(f"Application exited with code {result}")
         return result
+    
+    def fuck(self, name:str):
+        print(f"{name} FUCK YOU! CNMD! NMSL! FUCK!!!!!")
