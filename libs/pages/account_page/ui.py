@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 from qfluentwidgets import TitleLabel, BodyLabel, LargeTitleLabel, CardWidget, PrimaryPushButton
 from qfluentwidgets import FluentIcon as FIF
 from libs.consts import *
-from ..login_window import LoginWindow
+from ..dialog.login import LoginDialog
 
 class AccountPage(QFrame):
     def __init__(self, config, logger, parent=None):
@@ -15,7 +15,7 @@ class AccountPage(QFrame):
 
         self.initUI()
 
-        self.login_window = LoginWindow(config, logger, self)
+        self.login_window = LoginDialog(config, logger, self)
         self.login_window.hide()
 
 
