@@ -5,7 +5,8 @@ data/
 *.pyd
 *.pdf
 *.docx
-.ideas/
+.idea/
 config.json
 icons/*
 versions.txt
+utility/*
