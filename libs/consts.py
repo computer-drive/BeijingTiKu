@@ -5,7 +5,7 @@ APP_NAME = "BeijingTiKu"
 
 # Logger Info
 LOGGER_NAME = "Main"
-LOGGER_FORMAT = "%(color)s%(class_name)s %(levelname)s %(message)s%(reset)s"
+LOGGER_FORMAT = "%(color)s[%(asctime)s][%(class_name)s/%(levelname)s]%(message)s%(reset)s"
 
 # Path Info
 CONFIG_PATH = "config.json"

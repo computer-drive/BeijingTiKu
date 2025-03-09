@@ -33,7 +33,7 @@ class GetPointsWorker(RequestsWorker):
 
         self.finished.emit((status, data, self.pid))
 
-print(f"    -<Class> GetPapersListWorker")
+
 class GetPapersListWorker(RequestsWorker):
 
     def __init__(self, page, subject, grade, limit=10, logger=None):

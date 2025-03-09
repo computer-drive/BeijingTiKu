@@ -27,7 +27,7 @@ class DownloadButton(QWidget):
         self.image = BodyLabel()
         self.v_layout.addWidget(self.image, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.progress = ProgressRing()
+        self.progress = ProgressRing(useAni=False)
         self.progress.setFixedSize(96, 96)
         self.progress.hide()
         self.v_layout.addWidget(self.progress, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -98,9 +98,7 @@ class DownloadButton(QWidget):
         self.info_label.setText(f"{progress}%")
 
         self.progress.setValue(progress)
-        self.progress.update()
-
-        self.update()
+        
 
 
 

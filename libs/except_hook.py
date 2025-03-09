@@ -9,8 +9,7 @@ from sys import argv
 from libs.consts import *
 
 
-print("Initiating <Moudle> libs.except_hook")
-print(f"    -<Function> except_hook")
+
 
 def except_hook(exctype, value, tb):
     logger = getLogger(LOGGER_NAME)

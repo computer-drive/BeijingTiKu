@@ -1,6 +1,7 @@
 from .request_worker import RequestsWorker
 from libs.consts import *
 from .request import get_data
+from ..typed.papers import PaperDict
 
 def get_total(args):
     args["page"] = 114514
@@ -35,6 +36,7 @@ class SearchWorker(RequestsWorker):
 
         if status:
             total = get_total(self.args)
+
             self.finished.emit((status, data["data"], total))
         else:
             self.finished.emit((status, data["data"], 0))

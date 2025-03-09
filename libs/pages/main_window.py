@@ -35,6 +35,8 @@ class MainWindow(FluentWindow):
         self.avatorInterface.setObjectName("avatorInterface")
 
         self.initNavigation()
+
+        self.setStyleSheet("")
          
     def initNavigation(self):
 

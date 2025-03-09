@@ -85,7 +85,7 @@ class ResultCard(ItemCard):
         self.download_button = self.addButton(TransparentToolButton(FIF.DOWNLOAD), self.downloadButton)
         self.collect_button = self.addButton(TransparentToggleToolButton(FIF.HEART), self.collectButton)
 
-        self.clicked.connect(lambda: print("Clicked"))
+        self.clicked.connect(self.onClick)
 
         self.refreshButton()
 
@@ -111,6 +111,10 @@ class ResultCard(ItemCard):
 
             self.download_button.hide()
             self.collect_button.hide()
+
+    def onClick(self):
+        self.parent_.parent_.showPaperInfo(self.full_info)
+
 
     def workerFinished(self, data):
         self.logger.info(f"Got preferred info(id:{self.id}) success.")

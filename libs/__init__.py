@@ -6,9 +6,11 @@ from .cached import initCacheFile
 from utility.config import JsonConfig
 from PyQt5.QtWidgets import QApplication
 from .pages.main_window import MainWindow
+from PyQt5.QtCore import Qt
 
-print("Initiating <Moudle> libs.__init__")
-print(f"    -<Class> BeijingTiku")
+QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
+
+
 class BeijingTiku:
     def __init__(self):
         

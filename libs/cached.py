@@ -1,8 +1,7 @@
 import json
 import os
 
-print("Initiating <Moudle> libs.cached")
-print(f"    -<Function> initCacheFile")
+
 
 def initCacheFile():
     if not os.path.exists("data/papers.json"):
@@ -13,7 +12,7 @@ def initCacheFile():
         with open("data/preferred.json", "w", encoding="utf-8") as f:
             f.write(json.dumps({"preferred": []}, ensure_ascii=False))
         
-print(f"    -<Function> cachePapersInfo")
+
 def cachePapersInfo(papers:list[dict]):
     with open("data/papers.json", "r", encoding="utf-8") as f:
         data = json.loads(f.read())
@@ -27,7 +26,7 @@ def cachePapersInfo(papers:list[dict]):
         
         f.write(json.dumps(data, ensure_ascii=False, indent=4))
     
-print(f"    -<Function> cachePreferredInfo")
+
 def cachePreferredInfo(preferred:list[dict]):
     with open("data/preferred.json", "r", encoding="utf-8") as f:
         data = json.loads(f.read())

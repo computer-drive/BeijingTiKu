@@ -50,7 +50,7 @@ class Downloader(QThread):
 
 
         # print(self.progress.value())
-print(f"    -<Function> download_file")
+
 def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=None):
     from ..pages.progress_window import ProgressWindow
 

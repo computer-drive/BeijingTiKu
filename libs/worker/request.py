@@ -6,7 +6,6 @@ def get_data(url, args=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type
     
     try:
         response = requests.get(url, params=args, headers=headers, timeout=timeout)
-        # print(response.url)
         if response.ok:
             match data_type:
                 case "json":
@@ -29,7 +28,6 @@ def post_data(url, data=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_typ
 
     try:
         response = requests.post(url, data=data, headers=headers, timeout=timeout)
-        # print(response.url)
         if response.ok:
             match data_type:
                 case "json":
@@ -54,4 +52,3 @@ def get_total(args):
         return data["data"][0]["count"]
     else:
         return 0
-print(f"    -<Class> RequestsWorker")

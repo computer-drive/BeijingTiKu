@@ -105,4 +105,3 @@ class LoginWorker(QThread):
         else:
             self.error.emit(("avator", data))
 
-print(f"    -<Class> GetPreferredInfoWorker")
