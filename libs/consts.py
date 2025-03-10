@@ -5,7 +5,7 @@ APP_NAME = "BeijingTiKu"
 
 # Logger Info
 LOGGER_NAME = "Main"
-LOGGER_FORMAT = "%(color)s[%(asctime)s][%(class_name)s/%(levelname)s]%(message)s%(reset)s"
+LOGGER_FORMAT = "%(color)s[%(asctime)s][%(class_name)s/%(levelname)s]%(message)s"
 
 # Path Info
 CONFIG_PATH = "config.json"
@@ -13,7 +13,7 @@ AVATOR_PATH = "avator.jpg"
 REPORT_PATH = "logs/report/"
 FILE_PATH = "data\\files\\"
 LOG_PATH = "logs"
-ICON_PATH = "icons/"
+ICON_PATH = "resources/icons/"
 
 # Icon Path Info
 ICON_PATHS = {

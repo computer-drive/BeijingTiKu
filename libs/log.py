@@ -48,60 +48,73 @@ class AppLogger(logging.Logger):
 
 class LogFormatter(colorlog.ColoredFormatter):
     def format(self, record):
-
         record.thread = threading.current_thread().name
         record.color = ""
-
-        
-
-        match record.levelname:
-            case 'DEBUG':
-                record.color = fore.CYAN
-            case 'INFO':
-                record.levelname = f"{fore.BLUE}{record.levelname}{style.RESET}"
-            case 'WARNING':
-                record.color = fore.YELLOW
-            case 'ERROR':
-                record.color = fore.RED
-            case 'CRITICAL':
-                record.color = fore.RED
-            case 'SUCCESS':
-                record.color = fore.GREEN
-
-        
+        # 仅在控制台日志中添加颜色
+        if self.use_color:
+            match record.levelname:
+                case 'DEBUG':
+                    record.color = fore.CYAN
+                case 'INFO':
+                    record.levelname = f"{fore.BLUE}{record.levelname}{style.RESET}"
+                case 'WARNING':
+                    record.color = fore.YELLOW
+                case 'ERROR' | 'CRITICAL':
+                    record.color = fore.RED
+                case 'SUCCESS':
+                    record.color = fore.GREEN
         return super().format(record)
 
+    def __init__(self, format, datefmt=None, use_color=False):
+        super().__init__(fmt=format, datefmt=datefmt, reset=use_color)
+        self.use_color = use_color
+
+class FileHandler(logging.FileHandler):
+    def __init__(self, filename, mode='a', encoding=None, delay=False, file_format=LOGGER_FORMAT):
+        super().__init__(filename, mode, encoding, delay)
+
+        self.setFormatter(LogFormatter(file_format, datefmt="%H:%M:%S", use_color=False))
+        
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+
+            stream = self.stream
+
+            stream.write(msg + self.terminator)
+
+            self.flush()
+
+        except Exception:
+            self.handleError(record)
 
 
-def create_logger(name:str = "",
-                  level:int = logging.INFO,
-                  format:str = LOGGER_FORMAT ,
-                  file_logger:bool = True,
-                  file_logger_path:str = LOG_PATH ,
-                  file_logger_name:str = "app.log"
-                  ):
+
+def create_logger(
+    name: str = "",
+    level: int = logging.INFO,
+    console_format: str =  LOGGER_FORMAT,  # 含颜色字段的格式
+    file_logger: bool = True,
+    file_logger_path: str = LOG_PATH,
+    file_logger_name: str = "app.log",
+    file_format: str =  LOGGER_FORMAT  # 无颜色字段的格式
+):
     logger = AppLogger(name)
     logger.setLevel(level)
 
-    formatter = LogFormatter(
-        format,
-        datefmt="%H:%M:%S",
-        reset=True
-    )
 
-    
-    console_handler = colorlog.StreamHandler()
-    console_handler.setFormatter(formatter)
-    console_handler.setLevel(level)
-    logger.addHandler(console_handler)
-
+    # 文件处理器使用普通格式器
     if file_logger:
-        if not os.path.exists(file_logger_path):
-            os.mkdir(file_logger_path)
-        file_handler = logging.FileHandler(f"{file_logger_path}/{file_logger_name}")
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(level)
+        os.makedirs(file_logger_path, exist_ok=True)
+
+        file_handler = FileHandler(f"{file_logger_path}/{file_logger_name}")
         logger.addHandler(file_handler)
+
+    # 控制台处理器使用带颜色的格式器
+    console_handler = colorlog.StreamHandler()
+    console_formatter = LogFormatter(console_format, datefmt="%H:%M:%S", use_color=True)
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
 
     return logger
 
