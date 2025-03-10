@@ -1,11 +1,12 @@
-logs/
-data/
+config.json
+versions.txt
 *.log
 *.pyc
 *.pyd
 *.pdf
 *.docx
+.env/*
+logs/
+data/
 .idea/
-config.json
-versions.txt
 utility/*
