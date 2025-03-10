@@ -7,6 +7,5 @@ data/
 *.docx
 .idea/
 config.json
-icons/*
 versions.txt
 utility/*
