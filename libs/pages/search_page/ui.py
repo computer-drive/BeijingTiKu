@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QWidget, QHBoxLayout, QStackedWidget
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QWidget, QHBoxLayout, QStackedWidget
 from .sub_page import SearchSubPage, PaperInfoSubPage
 from libs.consts import *
 
@@ -18,9 +18,11 @@ class SearchPage(QFrame):
         self.max_page = 0
 
         v_layout = QVBoxLayout()
+        v_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(v_layout)
 
         self.stacked_widget = QStackedWidget()
+        self.stacked_widget.setContentsMargins(0, 0, 0, 0)
         v_layout.addWidget(self.stacked_widget)
 
         self.stacked_widget.addWidget(SearchSubPage(self.config, self.logger, self))

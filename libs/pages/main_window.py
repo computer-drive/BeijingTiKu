@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QIcon
+from PySide6.QtGui import QIcon
 from qfluentwidgets import  NavigationItemPosition, FluentWindow
 from qfluentwidgets import FluentIcon as FIF
 from libs.consts import *
@@ -36,7 +36,11 @@ class MainWindow(FluentWindow):
 
         self.initNavigation()
 
-        self.setStyleSheet("")
+        self.setStyleSheet("""
+                LargeTitleLabel {
+                    font-weight: normal;
+                }
+        """)
          
     def initNavigation(self):
 

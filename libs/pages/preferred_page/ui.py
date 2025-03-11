@@ -1,6 +1,6 @@
 from libs.consts import*
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QWidget, QHBoxLayout
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QWidget, QHBoxLayout
+from PySide6.QtCore import Qt
 from qfluentwidgets import (LargeTitleLabel, BodyLabel, ToolButton, ComboBox, IndeterminateProgressRing,
                             SpinBox, TreeWidget, PrimaryPushButton, SmoothMode, SingleDirectionScrollArea
                             )

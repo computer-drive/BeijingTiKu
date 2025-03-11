@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QFrame, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QFrame, QWidget, QVBoxLayout
 from qfluentwidgets import LargeTitleLabel, Pivot
-from PyQt5.QtCore import Qt
+from PySide6.QtCore import Qt
 from .sub_page.collects import LocalCollectSubPage
 from .sub_page.download import LocalDownloadSubPage
 from .sub_page.history import LocalHistorySubPage

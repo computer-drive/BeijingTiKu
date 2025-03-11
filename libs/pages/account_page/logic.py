@@ -1,6 +1,6 @@
 from .ui import AccountPage
 from libs.consts import *
-from PyQt5.QtGui import QImage, QPixmap
+from PySide6.QtGui import QImage, QPixmap
 from qfluentwidgets import MessageBox
 from ...worker.login import LoginWorker
 

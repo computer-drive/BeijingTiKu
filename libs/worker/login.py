@@ -1,13 +1,13 @@
-from PyQt5.QtCore import QThread, pyqtSignal
+from PySide6.QtCore import QThread, Signal
 from .request import post_data, get_data
 from libs.consts import *
 import time
 
 class LoginWorker(QThread):
-    got_qrcode = pyqtSignal(bytes)
-    logined = pyqtSignal(tuple)
-    error = pyqtSignal(tuple)
-    got_avator = pyqtSignal(bool)
+    got_qrcode = Signal(bytes)
+    logined = Signal(tuple)
+    error = Signal(tuple)
+    got_avator = Signal(bool)
 
     def __init__(self, logger, parent=None):
         super().__init__(parent)

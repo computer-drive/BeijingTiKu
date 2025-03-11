@@ -2,8 +2,8 @@ from datetime import datetime
 from libs.consts import *
 from .ui import Preferred
 from .. import _layout_clear
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTreeWidgetItem
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QTreeWidgetItem
 from qfluentwidgets import InfoBar
 from ..loading_window import LoadingWindow
 from ...worker.preferred import GetCategoryWorker, GetPointsWorker, GetPapersListWorker

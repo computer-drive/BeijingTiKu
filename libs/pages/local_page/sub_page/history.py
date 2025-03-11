@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout
 from qfluentwidgets import SubtitleLabel
 
 class LocalHistorySubPage(QWidget):

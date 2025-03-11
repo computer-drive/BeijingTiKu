@@ -1,5 +1,5 @@
 from .request_worker import RequestsWorker
-from PyQt5.QtCore import pyqtSignal
+from PySide6.QtCore import Signal
 from libs.consts import *
 import logging
 
@@ -124,7 +124,7 @@ class GetPapersListWorker(RequestsWorker):
         self.finished.emit((status, data))
 
 class GetPreferredInfoWorker(RequestsWorker):
-    finished = pyqtSignal(tuple)
+    finished = Signal(tuple)
 
     def __init__(self, id, config, logger: logging.Logger, parent=None):
         

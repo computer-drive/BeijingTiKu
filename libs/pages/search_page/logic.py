@@ -2,7 +2,7 @@
 # from .. import _layout_clear
 from .ui import SearchPage
 # from libs.consts import *
-# from PyQt5.QtCore import Qt
+# from PySide6.QtCore import Qt
 # from qfluentwidgets import InfoBar
 # from ...worker.search import SearchWorker
 # from ...widgets.result_card import ResultCard

@@ -1,7 +1,7 @@
 from qfluentwidgets import (MessageBoxBase, IndeterminateProgressRing,
                              TitleLabel, BodyLabel)
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtCore import Qt
 from libs.consts import *
 
 

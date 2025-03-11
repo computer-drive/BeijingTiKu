@@ -1,12 +1,13 @@
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PySide6.QtCore import QThread, Signal, Qt
 from qfluentwidgets import InfoBar
 from libs.consts import *
 import requests
 import time
 import logging
+
 class Downloader(QThread):
-    finished = pyqtSignal(tuple)
-    update = pyqtSignal(tuple)
+    finished = Signal(tuple)
+    update = Signal(tuple)
 
     def __init__(self, url: str, save_path: str, headers=HEADERS):
         self.url = url

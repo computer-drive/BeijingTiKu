@@ -1,7 +1,7 @@
 from qfluentwidgets import MessageBoxBase, TitleLabel, ProgressBar, CaptionLabel
-from PyQt5.QtWidgets import QHBoxLayout
+from PySide6.QtWidgets import QHBoxLayout
 from utility.format import format_time, format_capacity
-from PyQt5.QtCore import Qt
+from PySide6.QtCore import Qt
 
 class ProgressWindow(MessageBoxBase):
     def __init__(self, content: str, parent=None):

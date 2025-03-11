@@ -1,6 +1,6 @@
 from qfluentwidgets import (BodyLabel)
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
+from PySide6.QtCore import Qt
 from ...widgets.download_button import DownloadButton
 from . import Dialog
 from typing import Literal

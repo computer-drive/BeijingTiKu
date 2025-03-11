@@ -1,6 +1,6 @@
 from typing import Literal, Callable
-from PyQt5.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout, QPushButton, QToolButton
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout, QPushButton, QToolButton
+from PySide6.QtCore import Qt
 from qfluentwidgets import (CardWidget, TitleLabel, SubtitleLabel,
                              BodyLabel, InfoBadge, PushButton)
 

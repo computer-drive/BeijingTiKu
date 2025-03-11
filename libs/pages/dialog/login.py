@@ -1,8 +1,8 @@
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel
 from qfluentwidgets import (MessageBoxBase, TitleLabel, BodyLabel, ToolButton,
                              IndeterminateProgressRing,
                                )
-from PyQt5.QtCore import Qt
+from PySide6.QtCore import Qt
 from qfluentwidgets import FluentIcon as FIF
 from . import Dialog
 from libs.consts import *

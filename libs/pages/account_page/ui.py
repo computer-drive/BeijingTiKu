@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
 from qfluentwidgets import TitleLabel, BodyLabel, LargeTitleLabel, CardWidget, PrimaryPushButton
 from qfluentwidgets import FluentIcon as FIF
 from libs.consts import *

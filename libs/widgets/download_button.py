@@ -1,7 +1,7 @@
 import os
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtGui import QPixmap
+from PySide6.QtCore import Qt
 from qfluentwidgets import BodyLabel, ProgressRing
 from typing import  Literal
 from libs.consts import *

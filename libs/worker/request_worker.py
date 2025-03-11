@@ -1,9 +1,9 @@
-from PyQt5.QtCore import QThread, pyqtSignal
+from PySide6.QtCore import QThread, Signal
 from libs.consts import *
 from .request import get_data
 
 class RequestsWorker(QThread):
-    finished = pyqtSignal(tuple)
+    finished = Signal(tuple)
 
     def __init__(self, url, args=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT):
         super().__init__()

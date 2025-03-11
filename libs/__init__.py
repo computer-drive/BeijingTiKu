@@ -4,9 +4,9 @@ from .log import create_logger
 from .consts import *
 from .cached import initCacheFile
 from utility.config import JsonConfig
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from .pages.main_window import MainWindow
-from PyQt5.QtCore import Qt
+from PySide6.QtCore import Qt
 
 QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 
@@ -48,11 +48,12 @@ class BeijingTiku:
 
 
         self.mainWindow = MainWindow(self.config, self.logger)
+
         self.mainWindow.show()
 
         self.logger.info("Application running.")
 
-        result = self.app.exec_()
+        result = self.app.exec()
         self.logger.info(f"Application exited with code {result}")
         return result
     

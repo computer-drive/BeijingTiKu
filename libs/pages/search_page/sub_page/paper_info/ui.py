@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QSizePolicy
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineProfile, QWebEnginePage
-from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor
-from PyQt5.QtCore import Qt, QUrl, QObject
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QSizePolicy
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage
+from PySide6.QtWebEngineCore import QWebEngineUrlRequestInterceptor
+from PySide6.QtCore import Qt, QUrl, QObject
 from qfluentwidgets import (
     BodyLabel, TitleLabel, LargeTitleLabel, TransparentToolButton
 )

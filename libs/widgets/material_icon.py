@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtCore import Qt
+from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtCore import Qt
 from libs.consts import *
 import os
 

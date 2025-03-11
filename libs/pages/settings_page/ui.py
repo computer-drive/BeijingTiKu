@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QSizePolicy, QWidget
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QSizePolicy, QWidget
+from PySide6.QtCore import Qt
 from qfluentwidgets import (SingleDirectionScrollArea, SmoothMode, LargeTitleLabel, BodyLabel,
                             ProgressBar, PushButton, SwitchButton, SpinBox, GroupHeaderCardWidget
                             )

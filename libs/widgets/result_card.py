@@ -1,6 +1,6 @@
 from .card_base import ItemCard
 from typing import Literal
-from PyQt5.QtCore import Qt
+from PySide6.QtCore import Qt
 from libs.consts import *
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import (PushButton, TogglePushButton, BodyLabel, InfoBar,
