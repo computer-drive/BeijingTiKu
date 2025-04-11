@@ -1,4 +1,4 @@
-from qfluentwidgets import (BodyLabel)
+from qfluentwidgets import BodyLabel
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 from PySide6.QtCore import Qt
 from ...widgets.download_button import DownloadButton
@@ -7,15 +7,18 @@ from typing import Literal
 import os
 from libs.consts import *
 
+
 class DownloadDialog(Dialog):
-    def __init__(self, name:str, types_url:dict[Literal["word", "pptx", "pdf"], str], config, logger, parent=None):
-        super().__init__(f"查看和下载", f"{name}", config, logger, parent)
+    def __init__(
+        self,
+        name: str,
+        types_url: dict[Literal["word", "pptx", "pdf"], str],
+        parent=None,
+    ):
+        super().__init__(f"查看和下载", f"{name}", parent)
 
         self.name = name
         self.types_url = types_url
-
-        self.config = config
-        self.logger = logger
 
         self.initUi()
 
@@ -23,10 +26,9 @@ class DownloadDialog(Dialog):
         h_layout = QHBoxLayout()
         h_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        
         for key, value in self.types_url.items():
-            downloaded = False
-            if key == "word":
+            do key wnloaded = False
+            if== "word":
                 if os.path.exists(f"{FILE_PATH}{self.name}.docx"):
                     downloaded = True
             else:
@@ -37,6 +39,3 @@ class DownloadDialog(Dialog):
             h_layout.addWidget(DownloadButton(self.name, key, value, downloaded))
 
         self.content_layout.addLayout(h_layout)
-
-                    
-        

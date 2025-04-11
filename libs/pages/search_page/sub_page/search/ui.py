@@ -1,17 +1,24 @@
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QWidget, QHBoxLayout
 from PySide6.QtCore import Qt
-from qfluentwidgets import (IndeterminateProgressBar, LargeTitleLabel, PrimaryPushButton, SmoothMode,
-                            LineEdit, BodyLabel, ComboBox, SpinBox, ToolButton, SingleDirectionScrollArea
-                            )
+from qfluentwidgets import (
+    IndeterminateProgressBar,
+    LargeTitleLabel,
+    PrimaryPushButton,
+    SmoothMode,
+    LineEdit,
+    BodyLabel,
+    ComboBox,
+    SpinBox,
+    ToolButton,
+    SingleDirectionScrollArea,
+)
 from qfluentwidgets import FluentIcon as FIF
 from libs.consts import *
 
 
 class SearchSubPage(QFrame):
-    def __init__(self, config, logger, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.config = config
-        self.logger = logger
 
         self.page = 1
         self.max_page = 0
@@ -112,11 +119,17 @@ class SearchSubPage(QFrame):
 
         self.page_back_button = ToolButton(FIF.LEFT_ARROW)
         self.page_back_button.setToolTip("上一页")
-        self.page_layout.addWidget(self.page_back_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.page_layout.addWidget(
+            self.page_back_button, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.page_label = BodyLabel("-/- 共 - 条")
-        self.page_layout.addWidget(self.page_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.page_layout.addWidget(
+            self.page_label, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.page_forward_button = ToolButton(FIF.RIGHT_ARROW)
         self.page_forward_button.setToolTip("下一页")
-        self.page_layout.addWidget(self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.page_layout.addWidget(
+            self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter
+        )

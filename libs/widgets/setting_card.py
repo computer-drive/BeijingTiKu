@@ -5,7 +5,15 @@ from typing import Literal
 
 
 class SettingCard(CardWidget):
-    def __init__(self, icon, title:str, content:str, actions:list[QWidget], action_layout_type:Literal["h_layout", "v_layout"]="h_layout",parent=None):
+    def __init__(
+        self,
+        icon,
+        title: str,
+        content: str,
+        actions: list[QWidget],
+        action_layout_type: Literal["h_layout", "v_layout"] = "h_layout",
+        parent=None,
+    ):
         super().__init__(parent)
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -35,10 +43,9 @@ class SettingCard(CardWidget):
 
         action_widget = QWidget()
         if action_layout_type == "h_layout":
-            action_layout = QHBoxLayout()   
+            action_layout = QHBoxLayout()
         else:
-            action_layout = QVBoxLayout() 
-
+            action_layout = QVBoxLayout()
 
         for action in actions:
             action_layout.addWidget(action)
@@ -47,7 +54,5 @@ class SettingCard(CardWidget):
 
         h_layout.addLayout(left_layout, stretch=1)
         h_layout.addWidget(action_widget, stretch=0)
-
-        
 
         self.setLayout(h_layout)

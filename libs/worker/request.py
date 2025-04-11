@@ -2,8 +2,15 @@ import requests
 from typing import Literal
 from libs.consts import *
 
-def get_data(url, args=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type:Literal["json", "text", "bytes", "response"]="json"):
-    
+
+def get_data(
+    url,
+    args=None,
+    headers=HEADERS,
+    timeout=DEFAULT_TIMEOUT,
+    data_type: Literal["json", "text", "bytes", "response"] = "json",
+):
+
     try:
         response = requests.get(url, params=args, headers=headers, timeout=timeout)
         if response.ok:
@@ -23,8 +30,13 @@ def get_data(url, args=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type
         return (False, e)
 
 
-def post_data(url, data=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_type:Literal["json", "text", "bytes", "response"]="json"):
-
+def post_data(
+    url,
+    data=None,
+    headers=HEADERS,
+    timeout=DEFAULT_TIMEOUT,
+    data_type: Literal["json", "text", "bytes", "response"] = "json",
+):
 
     try:
         response = requests.post(url, data=data, headers=headers, timeout=timeout)
@@ -43,7 +55,8 @@ def post_data(url, data=None, headers=HEADERS, timeout=DEFAULT_TIMEOUT, data_typ
 
     except Exception as e:
         return (False, e)
-    
+
+
 def get_total(args):
     args["page"] = 114514
 

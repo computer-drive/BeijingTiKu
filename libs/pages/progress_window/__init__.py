@@ -3,10 +3,10 @@ from PySide6.QtWidgets import QHBoxLayout
 from utility.format import format_time, format_capacity
 from PySide6.QtCore import Qt
 
+
 class ProgressWindow(MessageBoxBase):
     def __init__(self, content: str, parent=None):
         super().__init__(parent)
-
 
         self.viewLayout.addWidget(TitleLabel(content))
 
@@ -31,13 +31,12 @@ class ProgressWindow(MessageBoxBase):
     def update_(self, data):
         count, total, speed, eta, progress = data
 
-            
-
         if eta == -1:
             eta = "--:--:--"
-            
 
-        self.count_label.setText(f"{format_capacity(count)} / {format_capacity(total)} {format_capacity(speed)}/S")
-        self.eta_label.setText(f"{format_time(eta)} {progress}%") 
+        self.count_label.setText(
+            f"{format_capacity(count)} / {format_capacity(total)} {format_capacity(speed)}/S"
+        )
+        self.eta_label.setText(f"{format_time(eta)} {progress}%")
 
         self.progress.setValue(progress)

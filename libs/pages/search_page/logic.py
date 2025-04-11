@@ -1,18 +1,19 @@
 # from datetime import datetime
 # from .. import _layout_clear
 from .ui import SearchPage
+
 # from libs.consts import *
 # from PySide6.QtCore import Qt
 # from qfluentwidgets import InfoBar
 # from ...worker.search import SearchWorker
 # from ...widgets.result_card import ResultCard
 
-class SearchPage(SearchPage):
-    def __init__(self, config, logger, parent=None):
-        super().__init__(config, logger, parent)
 
-        self.logger = logger
-        logger.name = "SearchPage"
+class SearchPage(SearchPage):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
 
 # class SearchPage(SearchPage):
 #     def __init__(self, config, logger, parent=None):
@@ -26,8 +27,8 @@ class SearchPage(SearchPage):
 #         year = datetime.now().year
 #         self.time_input.setRange(2000, year) # 设置时间输入框的范围
 #         self.time_input.setValue(year)
-        
-        
+
+
 #         self.search_button.clicked.connect(lambda: self.search(True))
 #         self.page_back_button.clicked.connect(lambda: self.backPage())
 #         self.page_forward_button.clicked.connect(lambda: self.nextPage())
@@ -61,7 +62,7 @@ class SearchPage(SearchPage):
 #                 pdf_file = item["pdf_paper"]
 #             else:
 #                 pdf_file = item["pdf_answer"]
-            
+
 #             if item["word_answer"] == "":
 #                 word_file = item["word_paper"]
 #             else:
@@ -76,9 +77,9 @@ class SearchPage(SearchPage):
 #                 item,
 #                 self.config,
 #                 self.logger,
-#                 self 
+#                 self
 #             ))
-    
+
 #     def stageChange(self):
 #         current = self.stage_input.currentIndex()
 #         match current:
@@ -134,13 +135,13 @@ class SearchPage(SearchPage):
 
 #             if type == "全部":
 #                 type = ""
-            
+
 #             if place == "北京":
 #                 place = ""
 
 #             self.logger.info(
 #                 f"Start searching with args: {keyword=} {subject=} {grade=} {type=} {time=} {place=} {page=} {limit=}",)
-            
+
 #             def finished(data):
 #                 global search_count
 
@@ -157,15 +158,15 @@ class SearchPage(SearchPage):
 #                         else:
 #                             self.max_page = data[2] // PAPERS_DEFAULT_LIMIT + 1
 
-                    
+
 #                         self.logger.info(f"Search completed with {len(data[1])} results. total: {data[2]}")
 #                     else:
 #                         self.logger.info(f"Search completed with {len(data[1])} results. ")
-                    
+
 #                     self.page_label.setText(f"{self.page}/{self.max_page} 共 {data[2]} 条")
 
 #                     self.showContentData(data[1])
-                    
+
 #                 else:
 #                     self.logger.warning(f"Search failed with error: {data[1]}",)
 

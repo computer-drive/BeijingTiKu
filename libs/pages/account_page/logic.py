@@ -3,13 +3,14 @@ from libs.consts import *
 from PySide6.QtGui import QImage, QPixmap
 from qfluentwidgets import MessageBox
 from ...worker.login import LoginWorker
+from ...config import config
+
 
 class AccountPage(AccountPage):
-    def __init__(self, config, logger, parent=None):
-        super().__init__(config, logger, parent)
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
-
-        self.login_worker = LoginWorker(logger)
+        self.login_worker = LoginWorker()
 
         self.login_worker.got_qrcode.connect(self.workerGotQrcode)
         self.login_worker.logined.connect(self.workerLogined)
@@ -21,16 +22,15 @@ class AccountPage(AccountPage):
 
         self.logout_button.clicked.connect(self.logout)
 
-    
     def windowClose(self, event):
         self.login_worker.__stop__ = True
 
     def logout(self):
-        self.config.set(CONFIG_ACCOUNT_LOGIN, False)
-        self.config.set(CONFIG_ACCOUNT_NAME, "")
-        self.config.set(CONFIG_ACCOUNT_PHONE, "")
-        self.config.set(CONFIG_ACCOUNT_IS_VIP, False)
-        self.config.set(CONFIG_ACCOUNT_TOKEN, "")
+        config.set(CONFIG_ACCOUNT_LOGIN, False)
+        config.set(CONFIG_ACCOUNT_NAME, "")
+        config.set(CONFIG_ACCOUNT_PHONE, "")
+        config.set(CONFIG_ACCOUNT_IS_VIP, False)
+        config.set(CONFIG_ACCOUNT_TOKEN, "")
 
         self.changeButton()
         self.changeText()
@@ -44,16 +44,19 @@ class AccountPage(AccountPage):
         self.login_window.loading.hide()
 
         image = QImage().fromData(data)
-        image = image.scaled(256, 256,)
+        image = image.scaled(
+            256,
+            256,
+        )
         self.login_window.qrcode_label.setPixmap(QPixmap.fromImage(image))
 
     def workerLogined(self, data):
-        self.config.set(CONFIG_ACCOUNT_LOGIN, True)
-        self.config.set(CONFIG_ACCOUNT_TOKEN, data[0])
-        self.config.set(CONFIG_ACCOUNT_NAME, data[1])
-        self.config.set(CONFIG_ACCOUNT_PHONE, data[2])
-        self.config.set(CONFIG_ACCOUNT_IS_VIP, data[3])
-    
+        config.set(CONFIG_ACCOUNT_LOGIN, True)
+        config.set(CONFIG_ACCOUNT_TOKEN, data[0])
+        config.set(CONFIG_ACCOUNT_NAME, data[1])
+        config.set(CONFIG_ACCOUNT_PHONE, data[2])
+        config.set(CONFIG_ACCOUNT_IS_VIP, data[3])
+
     def workerError(self, data):
         match data[0]:
             case "getQrcode":
@@ -71,11 +74,10 @@ class AccountPage(AccountPage):
             case _:
                 pass
 
-        
         self.login_window.close()
 
     def workerGotAvator(self, data):
-        
+
         self.login_window.close()
 
         self.changeButton()

@@ -3,14 +3,10 @@ from .sub_page import SearchSubPage, PaperInfoSubPage
 from libs.consts import *
 
 
-
 class SearchPage(QFrame):
-    def __init__(self, config, logger, parent=None): 
+    def __init__(self, parent=None):
 
         super().__init__(parent)
-
-        self.config = config
-        self.logger = logger
 
         self.parent_ = parent
 
@@ -25,12 +21,13 @@ class SearchPage(QFrame):
         self.stacked_widget.setContentsMargins(0, 0, 0, 0)
         v_layout.addWidget(self.stacked_widget)
 
-        self.stacked_widget.addWidget(SearchSubPage(self.config, self.logger, self))
-        self.stacked_widget.addWidget(PaperInfoSubPage(self.config, self))
-    
+        self.stacked_widget.addWidget(SearchSubPage(self))
+        self.stacked_widget.addWidget(PaperInfoSubPage(self))
+
     def changePage(self, page):
         self.stacked_widget.setCurrentIndex(page)
 
     def showPaperInfo(self, data):
         self.stacked_widget.widget(1).setData(data)
+
         self.changePage(1)

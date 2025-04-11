@@ -3,38 +3,96 @@ from typing import Literal
 from PySide6.QtCore import Qt
 from libs.consts import *
 from qfluentwidgets import FluentIcon as FIF
-from qfluentwidgets import (PushButton, TogglePushButton, BodyLabel, InfoBar,
-                            InfoBarPosition, TransparentToolButton, TransparentToggleToolButton,
-                             IndeterminateProgressRing)
+from qfluentwidgets import (
+    PushButton,
+    TogglePushButton,
+    BodyLabel,
+    InfoBar,
+    InfoBarPosition,
+    TransparentToolButton,
+    TransparentToggleToolButton,
+    IndeterminateProgressRing,
+)
 from ..pages.dialog.download import DownloadDialog
 from ..worker.preferred import GetPreferredInfoWorker
 from ..worker.download import download_file
 from ..cached import cachePapersInfo
 
+from ..config import config
+from ..log import logger
 import os
 
 
+class DownloadButton(TransparentToolButton):
+    def __init__(self, title, word_file, pdf_file, parent=None):
+        super().__init__(parent)
+
+        self.title = title
+
+        self.word_file = word_file
+        self.pdf_file = pdf_file
+        self.parent_ = parent
+
+        self.setIcon(FIF.DOWNLOAD)
+
+        self.clicked.connect(self.download)
+
+    def download(self):
+        dialog = DownloadDialog(
+            self.title, {"word": self.word_file, "pdf": self.pdf_file}, self.parent_
+        )
+
+        dialog.show()
+
+
+class CollectButton(TransparentToggleToolButton):
+    def __init__(self, id, title, full_info, parent=None):
+        super().__init__(parent)
+
+        self.id = id
+        self.title = title
+        self.full_info = full_info
+
+        self.setIcon(FIF.HEART)
+
+        self.clicked.connect(self.collectButton)
+
+    def collectButton(self):
+        collects = config.get(CONFIG_COLLECTS, [])
+
+        item = [self.id, self.title]
+        if item in collects:
+            collects.remove(item)
+            # self.collect_button.setText("收藏")
+        else:
+            collects.append(item)
+            cachePapersInfo([self.full_info])
+
+            # self.collect_button.setText("取消收藏")
+
+        config.set(CONFIG_COLLECTS, collects)
+
+
 class ResultCard(ItemCard):
-    def __init__(self,
-                id: int,
-                title: str,
-                view: int,
-                download: int,
-                author: str, 
-                upload_time: str, 
-                is_hot: bool, 
-                is_real: bool, 
-                pdf_file: str,
-                word_file: str,
-                full_info: dict,
-                config,
-                logger,
-                parent=None,
-                extra:str = "",
-                result_type:Literal["paper", "preferred"] = "paper"
-                ):
-        
-        super().__init__(config, logger, parent)
+    def __init__(
+        self,
+        id: int,
+        title: str,
+        view: int,
+        download: int,
+        author: str,
+        upload_time: str,
+        is_hot: bool,
+        is_real: bool,
+        pdf_file: str,
+        word_file: str,
+        full_info: dict,
+        parent=None,
+        extra: str = "",
+        result_type: Literal["paper", "preferred"] = "paper",
+    ):
+
+        super().__init__(parent)
 
         self.id = id
         self.title = title
@@ -49,10 +107,8 @@ class ResultCard(ItemCard):
         self._parent = parent
         self.config = config
         self.full_info = full_info
-        
-        self.parent_ = parent
 
-        
+        self.parent_ = parent
 
         self.addText(title, "title", stylesheet="font-size: 16px;")
         self.addText(f"下载量：{download} 浏览量：{view}", "body")
@@ -65,25 +121,18 @@ class ResultCard(ItemCard):
 
         if is_hot:
             badges.append(("热门", "badge", "#FE143B", ""))
-        
+
         if is_real:
             badges.append(("真实", "badge", "#00BFFF", ""))
 
         self.addTexts(badges)
 
-        # self.download_pdf_button = self.addButton(PushButton(FIF.DOWNLOAD, "下载PDF文件"), self.downloadPdf)
-        # self.download_word_button = self.addButton(PushButton(FIF.DOWNLOAD, "下载Word文件"), self.downloadWord)
-        
-        # self.view_web_button, self.view_pdf_button = self.addButton([
-        #     (PushButton(FIF.CLOUD, "查看网页"), self.viewWeb),
-        #     (PushButton(FIF.DOCUMENT, "预览网页"), self.viewPdf)
-        # ])
-
-
-        # self.collect_button = self.addButton(TogglePushButton(FIF.HEART, "收藏"), self.collectButton)
-
-        self.download_button = self.addButton(TransparentToolButton(FIF.DOWNLOAD), self.downloadButton)
-        self.collect_button = self.addButton(TransparentToggleToolButton(FIF.HEART), self.collectButton)
+        self.download_button = self.addButton(
+            DownloadButton(self.title, self.word_file, self.pdf_file, self.parent_)
+        )
+        self.collect_button = self.addButton(
+            CollectButton(self.id, self.title, self.full_info, self.parent_)
+        )
 
         self.clicked.connect(self.onClick)
 
@@ -115,12 +164,11 @@ class ResultCard(ItemCard):
     def onClick(self):
         self.parent_.parent_.showPaperInfo(self.full_info)
 
-
     def workerFinished(self, data):
-        self.logger.info(f"Got preferred info(id:{self.id}) success.")
+        logger.info(f"Got preferred info(id:{self.id}) success.")
 
         if data[0]:
-            
+
             if data[1]["storeInfo"]["pdf_paper"] == "":
                 if data[1]["storeInfo"]["pdf_answer"] == "":
                     self.pdf_file = None
@@ -129,8 +177,7 @@ class ResultCard(ItemCard):
             else:
                 self.pdf_file = data[1]["storeInfo"]["pdf_paper"]
 
-
-            if data[1]["storeInfo"]["word_paper"] == "":    
+            if data[1]["storeInfo"]["word_paper"] == "":
                 if data[1]["storeInfo"]["word_answer"] == "":
                     self.word_file = None
                 else:
@@ -139,12 +186,12 @@ class ResultCard(ItemCard):
                 self.word_file = data[1]["storeInfo"]["word_paper"]
 
             self.showButton()
-            
+
         else:
             self.showError("出现错误")
-    
+
     def initWorker(self):
-        self.worker = GetPreferredInfoWorker(self.id, self.config, self.logger)
+        self.worker = GetPreferredInfoWorker(self.id)
 
         self.worker.finished.connect(self.workerFinished)
 
@@ -166,71 +213,7 @@ class ResultCard(ItemCard):
 
         self.error_info_label.setText(info)
 
-    def downloadButton(self):
-        dialog = DownloadDialog(self.title, {
-            "word": self.word_file,
-            "pdf": self.pdf_file
-        },
-        self.config,
-        self.logger,
-        self.parent_)
-
-        dialog.show()
-
-
-
-
-    # def downloadPdf(self):
-    #     # print(self._parent)
-    #     if self.pdf_file == "":
-    #         InfoBar.error(
-    #             "无法下载PDF文件",
-    #             "该试卷无PDF格式的文件",
-    #             orient=Qt.Vertical,
-    #             isClosable=True,
-    #             position=InfoBarPosition.TOP_RIGHT,
-    #             parent=self._parent,
-    #             duration=INFO_BAR_DURATION
-    #         )
-    #     elif os.path.exists(f"{FILE_PATH}{self.title}.pdf"):
-    #         os.startfile(f"{FILE_PATH}{self.title}.pdf")
-    #     else:
-    #         download_file(f"{DOWNLOAD_URL}{self.pdf_file}", f"{FILE_PATH}{self.title}.pdf", f"正在下载{self.title}", parent=self._parent) 
-    #         self.download_pdf_button.setText("查看PDF文件")
-
-    # def downloadWord(self):
-    #     if self.word_file == "":
-    #         InfoBar.error(
-    #             "无法下载Word文件",
-    #             "该试卷无Word格式的文件",
-    #             orient=Qt.Vertical,
-    #             isClosable=True,
-    #             position=InfoBarPosition.TOP_RIGHT,
-    #             parent=self._parent,
-    #             duration=INFO_BAR_DURATION
-    #         )
-    #     elif os.path.exists(f"{FILE_PATH}{self.title}.docx"):
-    #         os.startfile(f"{FILE_PATH}{self.title}.docx")
-    #     else:
-    #         download_file(f"{DOWNLOAD_URL}{self.word_file}", f"{FILE_PATH}{self.title}.docx", f"正在下载{self.title}", parent=self._parent)
-    #         self.download_word_button.setText("查看Word文件")
-
-    # def viewWeb(self):
-    #     os.system(f"start {WEB_URL}?id={self.id}&title={self.title}")
-    
-    # def viewPdf(self):
-    #     os.system(f"start {DOWNLOAD_URL}{self.pdf_file}")
-
     def refreshButton(self):
-        # if os.path.exists(f"{FILE_PATH}{self.title}.pdf"):
-        #     self.download_pdf_button.setText("查看PDF文件")
-        # else:
-        #     self.download_pdf_button.setText("下载PDF文件")
-        
-        # if os.path.exists(f"{FILE_PATH}{self.title}.docx"):
-        #     self.download_word_button.setText("查看Word文件")
-        # else:
-        #     self.download_word_button.setText("下载Word文件")
 
         collects = self.config.get("collects", [])
         item = [self.id, self.title]
@@ -239,19 +222,3 @@ class ResultCard(ItemCard):
             # self.collect_button.setText("取消收藏")
         else:
             pass
-            # self.collect_button.setText("收藏")
-
-    def collectButton(self):
-        collects = self.config.get(CONFIG_COLLECTS, [])
-
-        item = [self.id, self.title]
-        if item in collects:
-            collects.remove(item)
-            # self.collect_button.setText("收藏")
-        else:
-            collects.append(item)
-            cachePapersInfo([self.full_info])
-
-            # self.collect_button.setText("取消收藏")
-
-        self.config.set(CONFIG_COLLECTS, collects)

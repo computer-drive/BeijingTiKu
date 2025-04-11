@@ -1,10 +1,20 @@
-from libs.consts import*
+from libs.consts import *
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QWidget, QHBoxLayout
 from PySide6.QtCore import Qt
-from qfluentwidgets import (LargeTitleLabel, BodyLabel, ToolButton, ComboBox, IndeterminateProgressRing,
-                            SpinBox, TreeWidget, PrimaryPushButton, SmoothMode, SingleDirectionScrollArea
-                            )
+from qfluentwidgets import (
+    LargeTitleLabel,
+    BodyLabel,
+    ToolButton,
+    ComboBox,
+    IndeterminateProgressRing,
+    SpinBox,
+    TreeWidget,
+    PrimaryPushButton,
+    SmoothMode,
+    SingleDirectionScrollArea,
+)
 from qfluentwidgets import FluentIcon as FIF
+
 
 class Preferred(QFrame):
     def __init__(self, config, parent=None):
@@ -28,25 +38,30 @@ class Preferred(QFrame):
         self.page_layout = QHBoxLayout()
         self.page_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         v_layout.addLayout(self.page_layout)
-        
+
         self.page_back_button = ToolButton(FIF.LEFT_ARROW)
         self.page_back_button.setToolTip("上一页")
-        self.page_layout.addWidget(self.page_back_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.page_layout.addWidget(
+            self.page_back_button, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.page_label = BodyLabel("-/- 共 - 条")
-        self.page_layout.addWidget(self.page_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.page_layout.addWidget(
+            self.page_label, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.page_forward_button = ToolButton(FIF.RIGHT_ARROW)
         self.page_forward_button.setToolTip("下一页")
-        self.page_layout.addWidget(self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter)
-
+        self.page_layout.addWidget(
+            self.page_forward_button, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.setLayout(v_layout)
 
     def initSearch(self):
 
         search_layout = QHBoxLayout()
-        search_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)    
+        search_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         search_layout.addWidget(BodyLabel("阶段&学科："))
 
@@ -83,7 +98,6 @@ class Preferred(QFrame):
         self.assembly_grade_input.setVisible(False)
         search_layout.addWidget(self.assembly_grade_input)
 
-
         search_layout.addWidget(BodyLabel("时间："))
 
         self.time_input = SpinBox()
@@ -92,9 +106,8 @@ class Preferred(QFrame):
         self.all_time_button = PrimaryPushButton("全部")
         search_layout.addWidget(self.all_time_button)
 
-
         return search_layout
-    
+
     def initContent(self):
         content_layout = QHBoxLayout()
 
@@ -119,18 +132,27 @@ class Preferred(QFrame):
         content_layout.addWidget(scroll_area)
 
         return content_layout
-    
+
     def initSearchLoading(self):
         self.search_loading = IndeterminateProgressRing()
         self.search_loading.setFixedSize(60, 60)
-        self.content_data_layout.addWidget(self.search_loading, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
+        self.content_data_layout.addWidget(
+            self.search_loading,
+            alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter,
+        )
 
     def initSearchNull(self):
-        
+
         self.icon_label = BodyLabel(SEARCH_NULL_TEXT)
         self.icon_label.setStyleSheet("font-size: 60px;")
-        self.content_data_layout.addWidget(self.icon_label, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
+        self.content_data_layout.addWidget(
+            self.icon_label,
+            alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter,
+        )
 
         self.null_label = BodyLabel("没有找到相关内容")
         self.null_label.setStyleSheet("font-size: 20px;")
-        self.content_data_layout.addWidget(self.null_label, alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
+        self.content_data_layout.addWidget(
+            self.null_label,
+            alignment=Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter,
+        )

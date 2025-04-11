@@ -1,25 +1,31 @@
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel
-from qfluentwidgets import (MessageBoxBase, TitleLabel, BodyLabel, ToolButton,
-                             IndeterminateProgressRing,
-                               )
+from qfluentwidgets import (
+    MessageBoxBase,
+    TitleLabel,
+    BodyLabel,
+    ToolButton,
+    IndeterminateProgressRing,
+)
 from PySide6.QtCore import Qt
 from qfluentwidgets import FluentIcon as FIF
 from . import Dialog
 from libs.consts import *
 
-class LoginDialog(Dialog):
-    def __init__(self, config, logger, parent=None):
-        super().__init__("登录", "请使用微信扫码登录", config, logger, parent)
 
-        self.config = config
-        self.logger = logger
+class LoginDialog(Dialog):
+    def __init__(self, parent=None):
+        super().__init__("登录", "请使用微信扫码登录", parent)
 
         self.loading = IndeterminateProgressRing()
         self.loading.setFixedSize(*PROGRESS_RING_SIZE)
-        self.content_layout.addWidget(self.loading, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.content_layout.addWidget(
+            self.loading, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.qrcode_label = QLabel()
-        self.content_layout.addWidget(self.qrcode_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.content_layout.addWidget(
+            self.qrcode_label, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.content_layout.addStretch()
 

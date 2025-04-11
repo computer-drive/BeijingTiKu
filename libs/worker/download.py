@@ -5,6 +5,7 @@ import requests
 import time
 import logging
 
+
 class Downloader(QThread):
     finished = Signal(tuple)
     update = Signal(tuple)
@@ -17,7 +18,7 @@ class Downloader(QThread):
         super().__init__()
 
     def run(self):
-        
+
         try:
             # print(self.url, self.headers)
             response = requests.get(self.url, headers=self.headers, stream=True)
@@ -42,17 +43,17 @@ class Downloader(QThread):
                         progress = int(count / total * 100.0)
 
                         self.update.emit((count, total, speed, eta, progress))
-                        
+
                         f.write(chunk)
 
             self.finished.emit((True, None))
         except KeyboardInterrupt as e:
             self.finished.emit((False, e))
 
-
         # print(self.progress.value())
 
-def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=None):
+
+def download_file(url: str, save_path: str, title: str, headers=HEADERS, parent=None):
     from ..pages.progress_window import ProgressWindow
 
     logger = logging.getLogger("Main")
@@ -66,7 +67,7 @@ def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=Non
                 f"文件已保存到: {save_path}",
                 orient=Qt.Vertical,
                 parent=parent,
-                duration=INFO_BAR_DURATION
+                duration=INFO_BAR_DURATION,
             )
             logger.info(f"Download successful.", extra={"class": "Downloader"})
         else:
@@ -75,17 +76,17 @@ def download_file(url:str, save_path:str, title:str, headers=HEADERS, parent=Non
                 f"详细信息请查看日志文件",
                 orient=Qt.Vertical,
                 parent=parent,
-                duration=INFO_BAR_DURATION
+                duration=INFO_BAR_DURATION,
             )
-            logger.error(f"Download failed. details: {data[1]}", extra={"class": "Downloader"})
+            logger.error(
+                f"Download failed. details: {data[1]}", extra={"class": "Downloader"}
+            )
 
-
-    
     logger.info(f"Starting download:{url}", extra={"class": "Downloader"})
     progress_window = ProgressWindow(title, parent)
 
     progress_window.worker = Downloader(url, save_path, headers)
-    progress_window.worker.update.connect(progress_window.update_)   
+    progress_window.worker.update.connect(progress_window.update_)
     progress_window.worker.finished.connect(finish)
 
     progress_window.worker.start()

@@ -6,13 +6,15 @@ from PySide6.QtCore import Qt
 from qfluentwidgets import InfoBar
 from .....worker.search import SearchWorker
 from .....widgets.result_card import ResultCard
+from .....log import logger
+from .....config import config
+
 
 class SearchSubPage(SearchSubPage):
-    def __init__(self, config, logger, parent=None):
-        super().__init__(config, logger, parent)
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         self.parent_ = parent
-
 
         self.stage_input.currentIndexChanged.connect(self.stageChange)
 
@@ -34,7 +36,7 @@ class SearchSubPage(SearchSubPage):
                     "没有找到相关内容，以下是可能的原因：\n 1.试卷未上传，一般在考试3-4天后上传 \n2.时间错误 \n3.关键词错误，可尝试删除关键词搜索\n",
                     parent=self,
                     orient=Qt.Vertical,
-                    duration=INFO_BAR_DURATION
+                    duration=INFO_BAR_DURATION,
                 )
                 continue
 
@@ -58,17 +60,22 @@ class SearchSubPage(SearchSubPage):
             else:
                 word_file = item["word_answer"]
 
-            self.content_data.content_layout.addWidget(ResultCard(
-                item["id"], item["store_name"],
-                item["browse"], item["upload_num"],
-                item["upload_people"], item["add_time"],
-                is_hot, is_real,
-                pdf_file, word_file,
-                item,
-                self.config,
-                self.logger,
-                self
-            ))
+            self.content_data.content_layout.addWidget(
+                ResultCard(
+                    item["id"],
+                    item["store_name"],
+                    item["browse"],
+                    item["upload_num"],
+                    item["upload_people"],
+                    item["add_time"],
+                    is_hot,
+                    is_real,
+                    pdf_file,
+                    word_file,
+                    item,
+                    self,
+                )
+            )
 
     def stageChange(self):
         current = self.stage_input.currentIndex()
@@ -129,8 +136,9 @@ class SearchSubPage(SearchSubPage):
         if place == "北京":
             place = ""
 
-        self.logger.info(
-            f"Start searching with args: {keyword=} {subject=} {grade=} {type=} {time=} {place=} {page=} {limit=}", )
+        logger.info(
+            f"Start searching with args: {keyword=} {subject=} {grade=} {type=} {time=} {place=} {page=} {limit=}",
+        )
 
         def finished(data):
             global search_count
@@ -147,17 +155,23 @@ class SearchSubPage(SearchSubPage):
                     else:
                         self.max_page = data[2] // PAPERS_DEFAULT_LIMIT + 1
 
-                    self.logger.info(f"Search completed with {len(data[1])} results. total: {data[2]}")
+                    logger.info(
+                        f"Search completed with {len(data[1])} results. total: {data[2]}"
+                    )
                 else:
-                    self.logger.info(f"Search completed with {len(data[1])} results. ")
+                    logger.info(f"Search completed with {len(data[1])} results. ")
 
                 self.page_label.setText(f"{self.page}/{self.max_page} 共 {data[2]} 条")
 
                 self.showContentData(data[1])
 
             else:
-                self.logger.warning(f"Search failed with error: {data[1]}", )
+                logger.warning(
+                    f"Search failed with error: {data[1]}",
+                )
 
-        self.searchWorker = SearchWorker(keyword, subject, grade, type, time, place, page, limit, get_total)
+        self.searchWorker = SearchWorker(
+            keyword, subject, grade, type, time, place, page, limit, get_total
+        )
         self.searchWorker.finished.connect(finished)
         self.searchWorker.start()

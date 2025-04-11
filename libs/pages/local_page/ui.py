@@ -7,11 +7,8 @@ from .sub_page.history import LocalHistorySubPage
 
 
 class LocalPage(QFrame):
-    def __init__(self, config, logger, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.config = config
-        self.logger = logger
 
         self.pages: dict[str, QWidget] = {
             "Collects": LocalCollectSubPage(self),
@@ -28,25 +25,22 @@ class LocalPage(QFrame):
 
         self.pivot = Pivot()
         self.pivot.addItem("CollectsPage", "收藏", lambda: self.changePage("Collects"))
-        self.pivot.addItem("DownloadsPage", "下载", lambda: self.changePage("Downloads"))
+        self.pivot.addItem(
+            "DownloadsPage", "下载", lambda: self.changePage("Downloads")
+        )
         self.pivot.addItem("HistoryPage", "历史", lambda: self.changePage("History"))
         v_layout.addWidget(self.pivot, 0, Qt.AlignmentFlag.AlignCenter)
 
-
         self.initPage("Collects")
 
-
-    
-    def initPage(self, default:str):
+    def initPage(self, default: str):
         # print(self.pages)
         for page, widget in self.pages.items():
             self.v_layout.addWidget(widget)
             if page == default:
-                widget.show() 
+                widget.show()
             else:
                 widget.hide()
-
-                
 
     def changePage(self, name):
 

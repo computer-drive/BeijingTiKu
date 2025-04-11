@@ -2,6 +2,7 @@ from PySide6.QtCore import QThread, Signal
 from libs.consts import *
 from .request import get_data
 
+
 class RequestsWorker(QThread):
     finished = Signal(tuple)
 

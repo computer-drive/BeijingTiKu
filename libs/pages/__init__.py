@@ -1,4 +1,3 @@
-
 def _layout_clear(layout):
     while layout.count():
         item = layout.takeAt(0)

@@ -3,13 +3,20 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 from qfluentwidgets import BodyLabel, ProgressRing
-from typing import  Literal
+from typing import Literal
 from libs.consts import *
 from ..worker.download import Downloader
 
 
 class DownloadButton(QWidget):
-    def __init__(self, file_name:str, file_type:Literal["word", "pdf", "pptx"], file_url:str, downloaded:bool=False, parent=None):
+    def __init__(
+        self,
+        file_name: str,
+        file_type: Literal["word", "pdf", "pptx"],
+        file_url: str,
+        downloaded: bool = False,
+        parent=None,
+    ):
         super().__init__(parent)
 
         self.file_type = file_type
@@ -18,7 +25,7 @@ class DownloadButton(QWidget):
         self.downloaded = downloaded
 
         self.mousePressEvent = self.onClick
-     
+
         self.initUi()
 
     def initUi(self):
@@ -46,20 +53,22 @@ class DownloadButton(QWidget):
 
         elif self.file_type == "pdf":
             icon = QPixmap(ICON_PATHS["pdf"])
-            
+
         elif self.file_type == "pptx":
             # TODO: 添加pptx图标
             pass
         else:
-            raise ValueError(f"File type must be word, pdf or pptx, not {self.file_type}")
-        
+            raise ValueError(
+                f"File type must be word, pdf or pptx, not {self.file_type}"
+            )
+
         icon = icon.scaled(96, 96)
         self.image.setPixmap(icon)
 
         self.info_label.setText(f"{text}")
 
         self.setLayout(self.v_layout)
-    
+
     def onClick(self, event):
         self.progress.setValue(0)
         if self.downloaded:
@@ -69,10 +78,16 @@ class DownloadButton(QWidget):
                 os.startfile(f"{FILE_PATH}{self.file_name}.{self.file_type}")
         else:
             if self.file_type == "word":
-                self.worker = Downloader(f"{DOWNLOAD_URL}{self.file_url}", f"{FILE_PATH}{self.file_name}.docx")
+                self.worker = Downloader(
+                    f"{DOWNLOAD_URL}{self.file_url}",
+                    f"{FILE_PATH}{self.file_name}.docx",
+                )
             else:
-                self.worker = Downloader(f"{DOWNLOAD_URL}{self.file_url}", f"{FILE_PATH}{self.file_name}.{self.file_type}")
-            
+                self.worker = Downloader(
+                    f"{DOWNLOAD_URL}{self.file_url}",
+                    f"{FILE_PATH}{self.file_name}.{self.file_type}",
+                )
+
             self.worker.finished.connect(self.onFinished)
             self.worker.update.connect(self.onUpdate)
 
@@ -94,19 +109,6 @@ class DownloadButton(QWidget):
     def onUpdate(self, data):
         count, total, speed, eta, progress = data
 
-        
         self.info_label.setText(f"{progress}%")
 
         self.progress.setValue(progress)
-        
-
-
-
-
-
-
-
-
-
-
-

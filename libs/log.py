@@ -3,14 +3,15 @@ import colorlog
 import os
 import threading
 from libs.consts import *
+from datetime import datetime
 from utility.ansi import fore, back, style
 
 SUCCESS = 25
 
 logging.addLevelName(SUCCESS, "SUCCESS")
 
+
 class AppLogger(logging.Logger):
-    
 
     def __init__(self, name):
         super().__init__(name)
@@ -19,11 +20,11 @@ class AppLogger(logging.Logger):
         if class_name:
             kwargs["extra"] = {"class_name": class_name}
         return kwargs
-        
+
     def debug(self, msg, class_name="Main", *args, **kwargs):
         kwargs = self.setClassName(class_name, **kwargs)
         super().debug(msg, *args, **kwargs)
-    
+
     def info(self, msg, class_name="Main", *args, **kwargs):
         kwargs = self.setClassName(class_name, **kwargs)
         super().info(msg, *args, **kwargs)
@@ -40,7 +41,7 @@ class AppLogger(logging.Logger):
     def critical(self, msg, class_name="Main", *args, **kwargs):
         kwargs = self.setClassName(class_name, **kwargs)
         super().critical(msg, *args, **kwargs)
-    
+
     def success(self, msg, class_name="Main", *args, **kwargs):
         kwargs = self.setClassName(class_name, **kwargs)
         super().log(SUCCESS, msg, *args, **kwargs)
@@ -53,15 +54,15 @@ class LogFormatter(colorlog.ColoredFormatter):
         # 仅在控制台日志中添加颜色
         if self.use_color:
             match record.levelname:
-                case 'DEBUG':
+                case "DEBUG":
                     record.color = fore.CYAN
-                case 'INFO':
+                case "INFO":
                     record.levelname = f"{fore.BLUE}{record.levelname}{style.RESET}"
-                case 'WARNING':
+                case "WARNING":
                     record.color = fore.YELLOW
-                case 'ERROR' | 'CRITICAL':
+                case "ERROR" | "CRITICAL":
                     record.color = fore.RED
-                case 'SUCCESS':
+                case "SUCCESS":
                     record.color = fore.GREEN
         return super().format(record)
 
@@ -69,12 +70,17 @@ class LogFormatter(colorlog.ColoredFormatter):
         super().__init__(fmt=format, datefmt=datefmt, reset=use_color)
         self.use_color = use_color
 
+
 class FileHandler(logging.FileHandler):
-    def __init__(self, filename, mode='a', encoding=None, delay=False, file_format=LOGGER_FORMAT):
+    def __init__(
+        self, filename, mode="a", encoding=None, delay=False, file_format=LOGGER_FORMAT
+    ):
         super().__init__(filename, mode, encoding, delay)
 
-        self.setFormatter(LogFormatter(file_format, datefmt="%H:%M:%S", use_color=False))
-        
+        self.setFormatter(
+            LogFormatter(file_format, datefmt="%H:%M:%S", use_color=False)
+        )
+
     def emit(self, record):
         try:
             msg = self.format(record)
@@ -89,19 +95,17 @@ class FileHandler(logging.FileHandler):
             self.handleError(record)
 
 
-
 def create_logger(
     name: str = "",
     level: int = logging.INFO,
-    console_format: str =  LOGGER_FORMAT,  # 含颜色字段的格式
+    console_format: str = LOGGER_FORMAT,  # 含颜色字段的格式
     file_logger: bool = True,
     file_logger_path: str = LOG_PATH,
     file_logger_name: str = "app.log",
-    file_format: str =  LOGGER_FORMAT  # 无颜色字段的格式
+    file_format: str = LOGGER_FORMAT,  # 无颜色字段的格式
 ):
     logger = AppLogger(name)
     logger.setLevel(level)
-
 
     # 文件处理器使用普通格式器
     if file_logger:
@@ -119,3 +123,7 @@ def create_logger(
     return logger
 
 
+now = datetime.now()  # 获取当前时间
+logger = create_logger(
+    LOGGER_NAME, file_logger_name=f"{now.strftime('%Y-%m-%d')}.log"  # 创建日志记录器
+)  # 设置日志文件名

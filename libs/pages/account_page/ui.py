@@ -1,23 +1,29 @@
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
-from qfluentwidgets import TitleLabel, BodyLabel, LargeTitleLabel, CardWidget, PrimaryPushButton
+from qfluentwidgets import (
+    TitleLabel,
+    BodyLabel,
+    LargeTitleLabel,
+    CardWidget,
+    PrimaryPushButton,
+)
 from qfluentwidgets import FluentIcon as FIF
 from libs.consts import *
 from ..dialog.login import LoginDialog
+from ...config import config
+
+
+
 
 class AccountPage(QFrame):
-    def __init__(self, config, logger, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.config = config
-        self.logger = logger
 
         self.initUI()
 
-        self.login_window = LoginDialog(config, logger, self)
+        self.login_window = LoginDialog(self)
         self.login_window.hide()
-
 
     def initUI(self):
 
@@ -35,27 +41,29 @@ class AccountPage(QFrame):
         layout.addWidget(self.token_label)
 
         layout.addWidget(TitleLabel("为什么需要登录？"))
-        layout.addWidget(BodyLabel("北京题库中的一个api，需要获取登录后的token，否则无法使用."))
-        layout.addWidget(BodyLabel("api为北京题库获取优选信息的接口，登录后才可获取下载地址(若不使用优选功能或可以自行下载，则可不进行登录)."))
+        layout.addWidget(
+            BodyLabel("北京题库中的一个api，需要获取登录后的token，否则无法使用.")
+        )
+        layout.addWidget(
+            BodyLabel(
+                "api为北京题库获取优选信息的接口，登录后才可获取下载地址(若不使用优选功能或可以自行下载，则可不进行登录)."
+            )
+        )
         layout.addWidget(BodyLabel("登录后token保存在本地，注意不要泄露你的token"))
-
-        
-        
 
     def login(self):
         self.login_window.show()
 
-
     def changeToken(self):
-        logined = self.config.get(CONFIG_ACCOUNT_LOGIN, False)
-        token = self.config.get(CONFIG_ACCOUNT_TOKEN, "")
+        logined = config.get(CONFIG_ACCOUNT_LOGIN, False)
+        token = config.get(CONFIG_ACCOUNT_TOKEN, "")
 
         # print(logined)
         if logined:
             self.token_label.setText(f"Token:{token}")
         else:
             self.token_label.setText("Token:未登录")
-    
+
     def initCard(self):
         card = CardWidget()
 
@@ -75,7 +83,7 @@ class AccountPage(QFrame):
 
         self.name_label = TitleLabel()
         info_layout.addWidget(self.name_label, alignment=Qt.AlignmentFlag.AlignLeft)
-        
+
         self.phone_label = BodyLabel()
         info_layout.addWidget(self.phone_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
@@ -99,7 +107,7 @@ class AccountPage(QFrame):
         return card
 
     def changeButton(self):
-        logined = self.config.get(CONFIG_ACCOUNT_LOGIN, False)
+        logined = config.get(CONFIG_ACCOUNT_LOGIN, False)
 
         if logined:
             self.login_button.hide()
@@ -109,10 +117,10 @@ class AccountPage(QFrame):
             self.logout_button.hide()
 
     def changeText(self):
-        name = self.config.get(CONFIG_ACCOUNT_NAME, "未登录")
-        logined = self.config.get(CONFIG_ACCOUNT_LOGIN, False)
-        is_vip = self.config.get(CONFIG_ACCOUNT_IS_VIP, False)
-        phone = self.config.get(CONFIG_ACCOUNT_PHONE, "")
+        name = config.get(CONFIG_ACCOUNT_NAME, "未登录")
+        logined = config.get(CONFIG_ACCOUNT_LOGIN, False)
+        is_vip = config.get(CONFIG_ACCOUNT_IS_VIP, False)
+        phone = config.get(CONFIG_ACCOUNT_PHONE, "")
 
         if logined:
             avator = QIcon(AVATOR_PATH)
@@ -135,4 +143,3 @@ class AccountPage(QFrame):
 
         self.name_label.setText(name)
         self.phone_label.setText(f"{phone_str} {vip_str}")
-

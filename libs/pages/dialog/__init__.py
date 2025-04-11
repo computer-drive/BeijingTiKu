@@ -1,17 +1,19 @@
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel
-from qfluentwidgets import (MessageBoxBase, TitleLabel, BodyLabel, ToolButton,
-                             IndeterminateProgressRing,
-                               )
+from qfluentwidgets import (
+    MessageBoxBase,
+    TitleLabel,
+    BodyLabel,
+    ToolButton,
+    IndeterminateProgressRing,
+)
 from PySide6.QtCore import Qt
 from qfluentwidgets import FluentIcon as FIF
 from libs.consts import *
 
-class Dialog(MessageBoxBase):
-    def __init__(self, title, tips, config, logger, parent=None):
-        super().__init__(parent)
 
-        self.config = config
-        self.logger = logger
+class Dialog(MessageBoxBase):
+    def __init__(self, title, tips, parent=None):
+        super().__init__(parent)
 
         self.viewLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
@@ -29,8 +31,10 @@ class Dialog(MessageBoxBase):
 
         close_button = ToolButton(FIF.CLOSE)
         close_button.clicked.connect(self.close)
-        top_layout.addWidget(close_button, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
-
+        top_layout.addWidget(
+            close_button,
+            alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop,
+        )
 
         self.content_layout = QVBoxLayout()
         self.viewLayout.addLayout(self.content_layout)
@@ -43,5 +47,3 @@ class Dialog(MessageBoxBase):
 
         self.buttonGroup.deleteLater()
         self.buttonLayout.deleteLater()
-
-

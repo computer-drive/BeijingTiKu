@@ -1,15 +1,26 @@
 from typing import Literal, Callable
-from PySide6.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout, QPushButton, QToolButton
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QWidget,
+    QVBoxLayout,
+    QPushButton,
+    QToolButton,
+)
 from PySide6.QtCore import Qt
-from qfluentwidgets import (CardWidget, TitleLabel, SubtitleLabel,
-                             BodyLabel, InfoBadge, PushButton)
+from qfluentwidgets import (
+    CardWidget,
+    TitleLabel,
+    SubtitleLabel,
+    BodyLabel,
+    InfoBadge,
+    PushButton,
+)
+
 
 class CardBase(CardWidget):
-    def __init__(self, left: QWidget, right: QWidget, config, logger, parent=None):
+    def __init__(self, left: QWidget, right: QWidget, parent=None):
         super().__init__(parent)
 
-        self.config = config
-        self.logger = logger
         self.parent_ = parent
 
         self.left_widget = left
@@ -25,11 +36,9 @@ class CardBase(CardWidget):
 
 
 class ItemCard(CardBase):
-    def __init__(self, config, logger, parent=None):
-        super().__init__( QWidget(), QWidget(), config, logger, parent)
+    def __init__(self, parent=None):
+        super().__init__(QWidget(), QWidget(), parent)
 
-        self.config = config
-        self.logger = logger
         self.parent_ = parent
 
         self.left_layout = QVBoxLayout()
@@ -40,8 +49,13 @@ class ItemCard(CardBase):
         self.right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.right_widget.setLayout(self.right_layout)
 
-
-    def addText(self, content:str, style:Literal["title", "subtitle", "body", "badge"]="body", color:str="", stylesheet:str=""):
+    def addText(
+        self,
+        content: str,
+        style: Literal["title", "subtitle", "body", "badge"] = "body",
+        color: str = "",
+        stylesheet: str = "",
+    ):
         match style:
             case "title":
                 label = TitleLabel(content)
@@ -51,7 +65,7 @@ class ItemCard(CardBase):
                 label = BodyLabel(content)
             case "badge":
                 label = InfoBadge.custom(content, color, color)
-        
+
         if style != "":
             label.setStyleSheet(stylesheet)
 
@@ -59,18 +73,28 @@ class ItemCard(CardBase):
 
         return label
 
-    def addTexts(self, contents: list[tuple[str, Literal["title", "subtitle", "body", "badge"], str, str]]):
+    def addTexts(
+        self,
+        contents: list[
+            tuple[str, Literal["title", "subtitle", "body", "badge"], str, str]
+        ],
+    ):
         layout = QHBoxLayout()
         for content in contents:
             layout.addWidget(self.addText(*content))
 
-
-    def addButton(self, button: QPushButton | QToolButton | list[tuple[PushButton | QToolButton, Callable]], func: Callable = None):
+    def addButton(
+        self,
+        button: (
+            QPushButton | QToolButton | list[tuple[PushButton | QToolButton, Callable]]
+        ),
+        func: Callable = None,
+    ):
         if isinstance(button, QPushButton) or isinstance(button, QToolButton):
             self.right_layout.addWidget(button)
             if func is not None:
                 button.clicked.connect(func)
-            
+
             return button
 
         elif isinstance(button, list):
@@ -88,4 +112,6 @@ class ItemCard(CardBase):
             return return_data
 
         else:
-            raise TypeError("button must be QPushButton, QToolButton or list[tuple[QPushButton | QToolButton, Callable]]")
+            raise TypeError(
+                "button must be QPushButton, QToolButton or list[tuple[QPushButton | QToolButton, Callable]]"
+            )

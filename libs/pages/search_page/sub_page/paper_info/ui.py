@@ -1,56 +1,33 @@
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QSizePolicy
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage
-from PySide6.QtWebEngineCore import QWebEngineUrlRequestInterceptor
-from PySide6.QtCore import Qt, QUrl, QObject
-from qfluentwidgets import (
-    BodyLabel, TitleLabel, LargeTitleLabel, TransparentToolButton
-)
+from .....widgets.pdf_view import PdfWidget
+from PySide6.QtCore import Qt, QUrl
+from qfluentwidgets import BodyLabel, TitleLabel, LargeTitleLabel, TransparentToolButton
 from qfluentwidgets import FluentIcon as FIF
 from libs.consts import *
 
-class RequestInterceptor(QWebEngineUrlRequestInterceptor):
-    def __init__(self, token):
-        super().__init__()
-        self.token = token
-
-    def interceptRequest(self, info):
-        print(f"Intercepting request to {info.requestUrl().toString()}")
-        info.setHttpHeader(b"Authorization", self.token)
-        info.setHttpHeader(b"Authori-Zation", self.token)
-
 
 class PaperInfoSubPage(QFrame):
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.name = None
+        self.url = None
+
         self.parent_ = parent
-        self.config = config
 
         self.initUi()
-        
 
-    def initWebview(self):
-        self.webview = QWebEngineView()
-        
-        # 创建独立的 Profile 和 Page
-        self.profile = QWebEngineProfile()
-        self.page = QWebEnginePage(self.profile, self.webview)
+    def initPdfView(self):
 
-        # 创建并保留拦截器实例
-        token = f"Bearer {self.config.get(CONFIG_ACCOUNT_TOKEN, '')}".encode()
-        self.interceptor = RequestInterceptor(token)  # 保存为实例变量
-        self.profile.setUrlRequestInterceptor(self.interceptor)
+        self.pdf_widget = PdfWidget()
 
-        self.webview.setPage(self.page)
+        return self.pdf_widget
 
-    
     def initUi(self):
-        self.initWebview()
 
         v_layout = QVBoxLayout()
         v_layout.setContentsMargins(0, 0, 0, 0)  # 移除布局边距
-        
+
         # 顶部布局
         top_layout = QHBoxLayout()
         self.back_button = TransparentToolButton(FIF.LEFT_ARROW)
@@ -63,18 +40,13 @@ class PaperInfoSubPage(QFrame):
         # 主内容区域
         main_layout = QHBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)  # 移除边距
-        
-        # WebView 配置
-        self.webview.setSizePolicy(
-            QSizePolicy.Expanding,  # 水平策略
-            QSizePolicy.Expanding   # 垂直策略
-        )
-        main_layout.addWidget(self.webview, stretch=1)  # 添加拉伸系数
-        
+
+        main_layout.addWidget(self.initPdfView(), stretch=1)  # 添加拉伸系数
+
         # 右侧信息面板
         info_layout = QVBoxLayout()
-        info_layout.setAlignment(Qt.AlignTop)
-        
+        info_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
         self.info0_label = TitleLabel("No Data")
         self.info0_label.setStyleSheet("font-size: 20px;")
         info_layout.addWidget(self.info0_label)
@@ -86,20 +58,31 @@ class PaperInfoSubPage(QFrame):
         info_layout.addWidget(self.info2_label)
 
         main_layout.addLayout(info_layout)
-        
+
         v_layout.addLayout(main_layout, stretch=1)  # 添加垂直拉伸系数
         self.setLayout(v_layout)
 
     def setData(self, data):
 
-        self.webview.setUrl(QUrl(f"{DOWNLOAD_URL}{data["pdf_answer"]}"))
+        # self.webview.setUrl(QUrl(f"{DOWNLOAD_URL}{data["pdf_answer"]}"))
 
         self.title_label.setText(data["store_name"])
-        
+
         self.info0_label.setText(data["store_name"])
-        self.info1_label.setText(f"下载量: {data['upload_num']} 浏览量: {data['browse']}")
-        self.info2_label.setText(f"作者：{data['upload_people']} 上传时间：{data['add_time']}")
+        self.info1_label.setText(
+            f"下载量: {data['upload_num']} 浏览量: {data['browse']}"
+        )
+        self.info2_label.setText(
+            f"作者：{data['upload_people']} 上传时间：{data['add_time']}"
+        )
 
+        self.name = data["store_name"]
 
+        # TODO: 有答案从pdf_paper中取值
 
+        self.url = data["pdf_answer"]
 
+        self.pdf_widget.setData(self.name, self.url)
+        self.pdf_widget.id = data["id"]
+
+        self.pdf_widget.showPdf()
