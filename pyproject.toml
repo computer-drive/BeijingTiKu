@@ -1,0 +1,29 @@
+[project]
+name = "beijingtiku"
+version = "1.0.0"
+description = ""
+authors = [
+    {name = "computer-drive",email = "ccc123zhy@outlook.com"}
+]
+license = {text = "MIT License"}
+readme = "README.md"
+requires-python = "^3.12"
+dependencies = [
+    "requests (>=2.32.3,<3.0.0)",
+    "pyside6 (>=6.9.0,<7.0.0)",
+    "pyside6-fluent-widgets (>=1.7.6,<2.0.0)",
+    "colorlog (>=6.9.0,<7.0.0)"
+]
+
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.15.0"
+flake8 = "^7.2.0"
+black = "^25.1.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
