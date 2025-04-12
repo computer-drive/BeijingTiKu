@@ -6,7 +6,7 @@ from libs.consts import *
 from datetime import datetime
 from utility.ansi import fore, back, style
 
-SUCCESS = 25
+SUCCESS = 25 
 
 logging.addLevelName(SUCCESS, "SUCCESS")
 
@@ -16,7 +16,7 @@ class AppLogger(logging.Logger):
     def __init__(self, name):
         super().__init__(name)
 
-    def setClassName(self, class_name, extra_name, **kwargs):
+    def setClassName(self, class_name, extra_name, **kwargs): # 设置类型、额外的名称
         if class_name:
             kwargs["extra"] = {
                 "class_name": class_name,
@@ -53,6 +53,7 @@ class LogFormatter(colorlog.ColoredFormatter):
     def format(self, record):
         record.thread = threading.current_thread().name
         record.color = ""
+
         # 仅在控制台日志中添加颜色
         if self.use_color:
             match record.levelname:
@@ -66,7 +67,7 @@ class LogFormatter(colorlog.ColoredFormatter):
                     record.color = fore.RED
                 case "SUCCESS":
                     record.color = fore.GREEN
-
+        # 仅没有方括号时添加方括号
         if record.extra_name != "":
             if not record.extra_name.startswith("[") and not record.extra_name.endswith("]"):
                 record.extra_name = f"[{record.extra_name}]"

@@ -12,6 +12,7 @@ QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 class BeijingTiku:
 
     def prepare(self):
+        # 检查依赖路径是否存在，不存在则创建
         for path in DEPEND_PATH:
             if not os.path.exists(path):
                 logger.warning(f"Dependency path {path} not found, creating...")
@@ -22,11 +23,11 @@ class BeijingTiku:
     def run(self):
         self.prepare()
 
-        self.app = QApplication([])
+        self.app = QApplication([]) # 创建应用程序实例
 
-        self.mainWindow = MainWindow()
+        self.mainWindow = MainWindow() # 创建主窗口实例
 
-        self.mainWindow.show()
+        self.mainWindow.show() # 显示主窗口
 
         logger.info("Application running.")
 

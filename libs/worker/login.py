@@ -21,29 +21,38 @@ class LoginWorker(QThread):
         self.__stop__ = True
 
     def run(self):
+        # 获取登录二维码URL
         status, wxpic = post_data(LOGIN_GET_PIC_URL, {})
         if status:
             if wxpic["status"] == 200:
+                # 获取成功
                 qrcode_url = wxpic["data"]["url"]
                 flag = wxpic["data"]["weChatFlag"]
 
                 logger.info(f"Got LoginQrcodeUrl:{wxpic['data']['url']}")
                 logger.info(f"Got LoginWechatFlag:{wxpic['data']['weChatFlag']}")
+
+        
             else:
+                # 获取失败
                 logger.error(f"Get LoginQrcodeUrl Error:{wxpic['msg']}")
                 self.error.emit(("getQrcode", wxpic["msg"]))
                 return
         else:
+            # 网络错误
             logger.error(f"Get LoginQrcodeUrl Error:{wxpic}")
             self.error.emit(("getQrcode", wxpic))
             return
-
+    
+        # 下载二维码
         status, qrcode = get_data(qrcode_url, data_type="bytes")
 
         if status:
+            # 获取成功，发送数据
             logger.info(f"Got LoginQrcode.")
             self.got_qrcode.emit(qrcode)
         else:
+            # 获取失败
             logger.info(f"Get LoginQrcode Error:{qrcode}")
             self.error.emit(("getQrcode", qrcode))
             return
@@ -56,19 +65,23 @@ class LoginWorker(QThread):
         avator_url = ""
 
         while True:
+            # 判断是否停止
             if self.__stop__:
                 logger.info("Stopped.")
                 return
 
+            # 获取登录状态
             status, data = get_data(LOGIN_URL, {"wechat_flag": flag})
 
+            # 判断是否登录成功
             if status:
                 if data["status"] == 200:
-
+                    # 获取信息
                     logined = True
                     token = data["data"]["token"]
                     username = data["data"]["wechatInfo"]["nickname"]
                     phone = data["data"]["wechatInfo"]["phone"]
+
                     if data["data"]["wechatInfo"]["is_vip"] == 1:
                         is_vip = True
 
@@ -87,8 +100,9 @@ class LoginWorker(QThread):
                 self.error.emit(("login", data))
                 return
 
-            time.sleep(1)
+            time.sleep(1) # 等待1秒，避免过快
 
+        # 判断是否登录成功
         if logined:
             self.logined.emit((token, username, phone, is_vip, avator_url))
         else:
@@ -96,6 +110,7 @@ class LoginWorker(QThread):
             self.error.emit(("login", "unknown"))
             return
 
+        # 下载头像  
         status, data = get_data(avator_url, data_type="bytes")
 
         if status:

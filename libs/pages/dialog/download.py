@@ -27,8 +27,8 @@ class DownloadDialog(Dialog):
         h_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         for key, value in self.types_url.items():
-            do key wnloaded = False
-            if== "word":
+            downloaded = False
+            if key == "word":
                 if os.path.exists(f"{FILE_PATH}{self.name}.docx"):
                     downloaded = True
             else:

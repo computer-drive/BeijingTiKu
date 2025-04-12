@@ -20,7 +20,7 @@ class Downloader(QThread):
     def run(self):
 
         try:
-            # print(self.url, self.headers)
+            # 发送请求
             response = requests.get(self.url, headers=self.headers, stream=True)
 
             count = 0
@@ -28,10 +28,12 @@ class Downloader(QThread):
             start_time = time.perf_counter()
             chunk_size = int(total / 100)
 
+            # 写入数据
             with open(self.save_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=chunk_size):
                     if chunk:
-                        # print(threading.current_thread().name)
+
+                        # 计算速度和进度
                         time.sleep(0)
                         count += len(chunk)
 
@@ -42,9 +44,9 @@ class Downloader(QThread):
                             eta = -1
                         progress = int(count / total * 100.0)
 
-                        self.update.emit((count, total, speed, eta, progress))
+                        self.update.emit((count, total, speed, eta, progress)) # 发送信号
 
-                        f.write(chunk)
+                        f.write(chunk) # 写入数据
 
             self.finished.emit((True, None))
         except KeyboardInterrupt as e:
