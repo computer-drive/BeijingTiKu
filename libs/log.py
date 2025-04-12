@@ -16,34 +16,36 @@ class AppLogger(logging.Logger):
     def __init__(self, name):
         super().__init__(name)
 
-    def setClassName(self, class_name, **kwargs):
+    def setClassName(self, class_name, extra_name, **kwargs):
         if class_name:
-            kwargs["extra"] = {"class_name": class_name}
+            kwargs["extra"] = {
+                "class_name": class_name,
+                "extra_name": extra_name,
+                }
         return kwargs
 
-    def debug(self, msg, class_name="Main", *args, **kwargs):
-        kwargs = self.setClassName(class_name, **kwargs)
+    def debug(self, msg, class_name="Main", extra_name="", *args, **kwargs):
+        kwargs = self.setClassName(class_name, extra_name, **kwargs)
         super().debug(msg, *args, **kwargs)
 
-    def info(self, msg, class_name="Main", *args, **kwargs):
-        kwargs = self.setClassName(class_name, **kwargs)
+    def info(self, msg, class_name="Main", extra_name="", *args, **kwargs):
+        kwargs = self.setClassName(class_name, extra_name, **kwargs)
         super().info(msg, *args, **kwargs)
 
-    def warning(self, msg, class_name="Main", *args, **kwargs):
-        kwargs = self.setClassName(class_name, **kwargs)
+    def warning(self, msg, class_name="Main", extra_name="", *args, **kwargs):
+        kwargs = self.setClassName(class_name, extra_name, **kwargs)
         super().warning(msg, *args, **kwargs)
 
-    def error(self, msg, class_name="Main", *args, **kwargs):
-
-        kwargs = self.setClassName(class_name, **kwargs)
+    def error(self, msg, class_name="Main", extra_name="", *args, **kwargs):
+        kwargs = self.setClassName(class_name, extra_name, **kwargs)
         super().error(msg, *args, **kwargs)
 
-    def critical(self, msg, class_name="Main", *args, **kwargs):
-        kwargs = self.setClassName(class_name, **kwargs)
+    def critical(self, msg, class_name="Main", extra_name="", *args, **kwargs):
+        kwargs = self.setClassName(class_name, extra_name, **kwargs)
         super().critical(msg, *args, **kwargs)
 
-    def success(self, msg, class_name="Main", *args, **kwargs):
-        kwargs = self.setClassName(class_name, **kwargs)
+    def success(self, msg, class_name="Main", extra_name="", *args, **kwargs):
+        kwargs = self.setClassName(class_name, extra_name, **kwargs)
         super().log(SUCCESS, msg, *args, **kwargs)
 
 
@@ -64,6 +66,12 @@ class LogFormatter(colorlog.ColoredFormatter):
                     record.color = fore.RED
                 case "SUCCESS":
                     record.color = fore.GREEN
+
+        if record.extra_name != "":
+            if not record.extra_name.startswith("[") and not record.extra_name.endswith("]"):
+                record.extra_name = f"[{record.extra_name}]"
+            print(f"Debug - extra_name: {record.extra_name}")  # 调试输出
+        
         return super().format(record)
 
     def __init__(self, format, datefmt=None, use_color=False):
