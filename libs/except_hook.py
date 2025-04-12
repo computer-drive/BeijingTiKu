@@ -7,11 +7,31 @@ from logging import getLogger
 from json import dumps
 from sys import argv
 from libs.consts import *
+from PySide6.QtCore import qInstallMessageHandler, QtMsgType
+from .log import logger
+
+def qt_message_handler(type, context, message):
+
+    content = f"{message}"
+
+    match type:
+        case QtMsgType.QtDebugMsg:
+            logger.debug(content, "Qt")
+        case QtMsgType.QtWarningMsg:
+            logger.warning(content, "Qt", "test")
+        case QtMsgType.QtCriticalMsg:
+            logger.error(content, "Qt")
+        case QtMsgType.QtFatalMsg:
+            logger.error(content, "Qt")
+        case QtMsgType.QtInfoMsg:
+            logger.info(content, "Qt")
+        case QtMsgType.QtSystemMsg:
+            logger.info(content, "Qt")
+
+qInstallMessageHandler(qt_message_handler)
 
 
 def except_hook(exctype, value, tb):
-    logger = getLogger(LOGGER_NAME)
-
     tb_str = "".join(format_tb(tb))
 
     logger.error(f"Uncaught exception while running: {exctype.__name__}: {value} ")
@@ -41,3 +61,6 @@ def except_hook(exctype, value, tb):
         )
 
     _exit(1)
+
+
+
